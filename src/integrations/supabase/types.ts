@@ -58,6 +58,8 @@ export type Database = {
           password_hash: string
           role: string
           username: string
+          user_id: string | null
+          email: string | null
         }
         Insert: {
           created_at?: string
@@ -66,6 +68,8 @@ export type Database = {
           password_hash: string
           role?: string
           username: string
+          user_id?: string | null
+          email?: string | null
         }
         Update: {
           created_at?: string
@@ -74,6 +78,8 @@ export type Database = {
           password_hash?: string
           role?: string
           username?: string
+          user_id?: string | null
+          email?: string | null
         }
         Relationships: []
       }
@@ -231,6 +237,7 @@ export type Database = {
           id: string
           title: string
           video_id: string
+          is_news: boolean
         }
         Insert: {
           created_at?: string
@@ -238,6 +245,7 @@ export type Database = {
           id?: string
           title: string
           video_id: string
+          is_news?: boolean
         }
         Update: {
           created_at?: string
@@ -245,6 +253,127 @@ export type Database = {
           id?: string
           title?: string
           video_id?: string
+          is_news?: boolean
+        }
+        Relationships: []
+      }
+      equipment_inventory: {
+        Row: {
+          id: string
+          name: string
+          photo_url: string | null
+          total_quantity: number
+          available_quantity: number
+          rental_duration: number
+          deposit_amount: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          photo_url?: string | null
+          total_quantity: number
+          available_quantity: number
+          rental_duration: number
+          deposit_amount: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          photo_url?: string | null
+          total_quantity?: number
+          available_quantity?: number
+          rental_duration?: number
+          deposit_amount?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      patient_history: {
+        Row: {
+          id: string
+          equipment_id: string
+          equipment_name: string
+          patient_name: string
+          mobile_number: string
+          pickup_date: string
+          return_date: string
+          status: string
+          created_by_user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          equipment_id: string
+          equipment_name: string
+          patient_name: string
+          mobile_number: string
+          pickup_date: string
+          return_date: string
+          status: string
+          created_by_user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          equipment_id?: string
+          equipment_name?: string
+          patient_name?: string
+          mobile_number?: string
+          pickup_date?: string
+          return_date?: string
+          status?: string
+          created_by_user_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      president_secretary: {
+        Row: {
+          id: string
+          name: string
+          role: string
+          message: string | null
+          photo_url: string | null
+          photo_path: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          role: string
+          message?: string | null
+          photo_url?: string | null
+          photo_path?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          role?: string
+          message?: string | null
+          photo_url?: string | null
+          photo_path?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      admins: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string
         }
         Relationships: []
       }

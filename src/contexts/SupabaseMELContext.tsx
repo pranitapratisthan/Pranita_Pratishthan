@@ -3,26 +3,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 
-interface Equipment {
+// Use Supabase generated types
+type Equipment = {
   id: string;
   name: string;
-  photo_url: string;
+  photo_url: string | null;
   total_quantity: number;
   available_quantity: number;
   rental_duration: number;
   deposit_amount: number;
-}
+  created_at: string;
+};
 
-interface MELUser {
+type MELUser = {
   id: string;
-  user_id: string;
+  user_id: string | null;
   username: string;
   full_name: string;
-  email: string;
+  email: string | null;
   created_at: string;
-}
+  password_hash: string;
+  role: string;
+};
 
-interface Rental {
+type Rental = {
   id: string;
   equipment_id: string;
   equipment_name: string;
@@ -32,27 +36,30 @@ interface Rental {
   return_date: string;
   status: string;
   created_by_user_id: string;
-}
+  created_at: string;
+};
 
-interface PresidentSecretary {
+type PresidentSecretary = {
   id: string;
   name: string;
   role: string; // 'president' or 'secretary'
   message: string | null;
   photo_url: string | null;
-}
+  photo_path: string | null;
+  created_at: string;
+};
 
-interface PopupEvent {
+type PopupEvent = {
   id: string;
   enabled: boolean;
   title: string;
-  description?: string;
-  date?: string;
-  location?: string;
+  description?: string | null;
+  date?: string | null;
+  location?: string | null;
   banner_image_url?: string | null;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 interface SupabaseMELContextType {
   equipment: Equipment[];
@@ -65,17 +72,17 @@ interface SupabaseMELContextType {
   popup: PopupEvent | null;
   fetchPopup: () => Promise<void>;
   updatePopup: (data: Partial<PopupEvent> & { id?: string; banner_file?: File | null }) => Promise<void>;
-  addEquipment: (equipment: Omit<Equipment, 'id'>) => Promise<void>;
+  addEquipment: (equipment: Omit<Equipment, 'id' | 'created_at'>) => Promise<void>;
   updateEquipment: (id: string, updates: Partial<Equipment>) => Promise<void>;
   deleteEquipment: (id: string) => Promise<void>;
   deleteMELUser: (id: string) => Promise<void>;
-  addRental: (rental: Omit<Rental, 'id'>) => Promise<void>;
+  addRental: (rental: Omit<Rental, 'id' | 'created_at'>) => Promise<void>;
   updateRental: (id: string, updates: Partial<Rental>) => Promise<void>;
   getOverdueRentals: () => Rental[];
   setCurrentMELUser: (user: MELUser | null) => void;
   refreshData: () => Promise<void>;
   updatePresidentSecretary: (
-    updates: Omit<PresidentSecretary, 'id'> & { id?: string; photo_file?: File | null }
+    updates: Omit<PresidentSecretary, 'id' | 'created_at'> & { id?: string; photo_file?: File | null }
   ) => Promise<void>;
   fetchPresidentAndSecretary: () => Promise<void>;
 }
@@ -118,7 +125,6 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchMELUsers = async () => {
     try {
-      // Use the authenticated session to make the request
       const { data, error } = await supabase
         .from('mel_users')
         .select('*')
@@ -148,12 +154,12 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       setRentals(data || []);
     } catch (error) {
       console.error('Error fetching rentals:', error);
-      toast.error('Failed to load rental history');
+      toast.error('Failed to load rentals');
     }
   };
 
   const fetchCurrentMELUser = async () => {
-    if (!user || !isAdmin) return;
+    if (!user?.id) return;
     
     try {
       const { data, error } = await supabase
@@ -162,8 +168,12 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', user.id)
         .single();
       
-      if (error) throw error;
-      setCurrentMELUser(data);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching current MEL user:', error);
+        return;
+      }
+      
+      setCurrentMELUser(data || null);
     } catch (error) {
       console.error('Error fetching current MEL user:', error);
     }
@@ -174,24 +184,18 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('president_secretary')
         .select('*')
-        .in('role', ['president', 'secretary'])
-        .order('updated_at', { ascending: false });
-
+        .in('role', ['president', 'secretary']);
+      
       if (error) throw error;
-      if (Array.isArray(data)) {
-        const pres = data.find((r) => r.role === 'president') || null;
-        const sec = data.find((r) => r.role === 'secretary') || null;
-        setPresident(pres);
-        setSecretary(sec);
-      } else {
-        setPresident(null);
-        setSecretary(null);
-      }
+      
+      const presidentData = data?.find(p => p.role === 'president');
+      const secretaryData = data?.find(p => p.role === 'secretary');
+      
+      setPresident(presidentData || null);
+      setSecretary(secretaryData || null);
     } catch (error) {
-      console.error('Error fetching president/secretary:', error);
-      toast.error('Failed to load president/secretary info');
-      setPresident(null);
-      setSecretary(null);
+      console.error('Error fetching president and secretary:', error);
+      toast.error('Failed to load president and secretary data');
     }
   };
 
@@ -200,15 +204,13 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('popup_events')
         .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1)
+        .eq('enabled', true)
         .maybeSingle();
+      
       if (error) throw error;
       setPopup(data || null);
     } catch (error) {
       console.error('Error fetching popup:', error);
-      toast.error('Failed to fetch popup');
-      setPopup(null);
     }
   };
 
@@ -218,33 +220,33 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       let bannerPath: string | null | undefined = undefined;
 
       if (changes.banner_file) {
-        const file = changes.banner_file;
-        const ext = file.name.split('.').pop();
-        const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-        const storageRes = await supabase.storage
-          .from('popup')
-          .upload(`banners/${filename}`, file, { upsert: true });
-        if (storageRes.error) throw storageRes.error;
-        const { data: { publicUrl } } = supabase.storage.from('popup').getPublicUrl(`banners/${filename}`);
+        const fileExt = changes.banner_file.name.split('.').pop();
+        const fileName = `popup_${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('gallery')
+          .upload(fileName, changes.banner_file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('gallery')
+          .getPublicUrl(fileName);
+        
         bannerUrl = publicUrl;
-        bannerPath = `banners/${filename}`;
+        bannerPath = fileName;
       }
 
-      // Find if popup already exists
-      let popupId = changes.id;
-      if (!popupId && popup) popupId = popup.id;
-      let payload: any = {
-        enabled: changes.enabled ?? popup?.enabled ?? false,
-        title: changes.title ?? popup?.title ?? '',
-        description: changes.description ?? popup?.description ?? '',
-        date: changes.date ?? popup?.date ?? '',
-        location: changes.location ?? popup?.location ?? '',
-        updated_at: new Date().toISOString(),
+      const payload: any = {
+        ...changes,
+        banner_image_url: bannerUrl,
       };
-      if (bannerUrl !== undefined) {
-        payload.banner_image_url = bannerUrl;
+
+      if (bannerPath) {
         payload.banner_image_path = bannerPath;
       }
+
+      const popupId = changes.id || popup?.id;
 
       if (popupId) {
         const { error } = await supabase
@@ -279,224 +281,151 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   };
 
-  const uploadPresidentSecretaryPhoto = async (file: File, role: string, oldPhotoPath?: string | null) => {
-    // Upload to Supabase storage
-    const ext = file.name.split('.').pop();
-    const filename = `${role}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const bucket = 'president_secretary';
-    const photoPath = `photos/${filename}`;
-
-    // Delete old file if present
-    if (oldPhotoPath) {
-      try {
-        // Only delete if path is non-empty string
-        if (typeof oldPhotoPath === "string" && oldPhotoPath.length > 0) {
-          const removeRes = await supabase.storage.from(bucket).remove([oldPhotoPath]);
-          if (removeRes.error) {
-            // Log but don't block flow
-            console.warn("Failed to remove old photo:", removeRes.error.message);
-          }
-        }
-      } catch (err) {
-        console.warn("Error deleting photo:", err);
-      }
-    }
-
-    const uploadRes = await supabase.storage
-      .from(bucket)
-      .upload(photoPath, file, { upsert: true });
-    if (uploadRes.error) throw uploadRes.error;
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(photoPath);
-    return { photo_url: publicUrl, photo_path: photoPath };
+  const uploadPresidentSecretaryPhoto = async (
+    file: File,
+    bucketName: string = 'president_secretary'
+  ): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, file);
+    
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(fileName);
+    
+    return publicUrl;
   };
 
   const updatePresidentSecretary = async (
-    updates: Omit<PresidentSecretary, 'id'> & { id?: string; photo_file?: File | null }
+    updates: Omit<PresidentSecretary, 'id' | 'created_at'> & { id?: string; photo_file?: File | null }
   ) => {
     try {
-      if (!['president', 'secretary'].includes(updates.role)) throw new Error('Invalid role');
+      let photoUrl: string | null = updates.photo_url || null;
+      let photoPath: string | null = null;
 
-      // Find the existing record for that role if present
-      const { data: existingArr, error: selError } = await supabase
-        .from('president_secretary')
-        .select('*')
-        .eq('role', updates.role)
-        .order('updated_at', { ascending: false })
-        .limit(1);
-      if (selError) throw selError;
-
-      let newPhotoUrl = updates.photo_url ?? null;
-      let newPhotoPath = null;
       if (updates.photo_file) {
-        // Get old photo path if any
-        const oldPhotoPath =
-          existingArr && existingArr.length > 0 && existingArr[0].photo_path
-            ? existingArr[0].photo_path
-            : undefined;
-
-        // Upload and get new url/path, deleting old photo if exists
-        const uploaded = await uploadPresidentSecretaryPhoto(
-          updates.photo_file,
-          updates.role,
-          oldPhotoPath
-        );
-        newPhotoUrl = uploaded.photo_url;
-        newPhotoPath = uploaded.photo_path;
-      } else if (existingArr && existingArr.length > 0) {
-        newPhotoPath = existingArr[0].photo_path ?? null;
+        photoUrl = await uploadPresidentSecretaryPhoto(updates.photo_file);
+        photoPath = `president_secretary/${updates.photo_file.name}`;
       }
 
-      const payload: any = {
-        name: updates.name,
-        message: updates.message,
-        photo_url: newPhotoUrl,
-        photo_path: newPhotoPath,
-        updated_at: new Date().toISOString(),
+      const payload = {
+        ...updates,
+        photo_url: photoUrl,
+        photo_path: photoPath,
       };
 
-      if (existingArr && existingArr.length > 0) {
-        const id = existingArr[0].id;
+      const recordId = updates.id;
+
+      if (recordId) {
         const { error } = await supabase
           .from('president_secretary')
           .update(payload)
-          .eq('id', id);
+          .eq('id', recordId);
         if (error) throw error;
-        toast.success(`Updated ${updates.role}`);
       } else {
-        payload.role = updates.role;
         const { error } = await supabase
           .from('president_secretary')
           .insert([payload]);
         if (error) throw error;
-        toast.success(`Added ${updates.role}`);
       }
+
+      toast.success('President/Secretary updated successfully');
       await fetchPresidentAndSecretary();
     } catch (error) {
       console.error('Error updating president/secretary:', error);
       toast.error('Failed to update president/secretary');
-      throw error;
     }
   };
 
-  useEffect(() => {
-    refreshData();
-  }, [user, isAdmin]);
-
-  const addEquipment = async (equipmentData: Omit<Equipment, 'id'>) => {
-    if (!isAdmin) {
-      toast.error('Unauthorized: Only admin can add equipment');
-      throw new Error('Unauthorized');
-    }
+  const addEquipment = async (equipmentData: Omit<Equipment, 'id' | 'created_at'>) => {
     try {
       const { error } = await supabase.from('equipment_inventory').insert([equipmentData]);
       if (error) throw error;
-      toast.success('Equipment added successfully!');
+      toast.success('Equipment added successfully');
       await fetchEquipment();
     } catch (error) {
       console.error('Error adding equipment:', error);
       toast.error('Failed to add equipment');
-      throw error;
     }
   };
 
   const updateEquipment = async (id: string, updates: Partial<Equipment>) => {
-    if (!isAdmin) {
-      toast.error('Unauthorized: Only admin can update equipment');
-      throw new Error('Unauthorized');
-    }
     try {
       const { error } = await supabase.from('equipment_inventory').update(updates).eq('id', id);
       if (error) throw error;
-      toast.success('Equipment updated successfully!');
+      toast.success('Equipment updated successfully');
       await fetchEquipment();
     } catch (error) {
       console.error('Error updating equipment:', error);
       toast.error('Failed to update equipment');
-      throw error;
     }
   };
 
   const deleteEquipment = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('equipment_inventory')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('equipment_inventory').delete().eq('id', id);
       if (error) throw error;
-      
-      toast.success('Equipment deleted successfully!');
+      toast.success('Equipment deleted successfully');
       await fetchEquipment();
     } catch (error) {
       console.error('Error deleting equipment:', error);
       toast.error('Failed to delete equipment');
-      throw error;
     }
   };
 
   const deleteMELUser = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('mel_users')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('mel_users').delete().eq('id', id);
       if (error) throw error;
-      
-      toast.success('MEL user deleted successfully!');
+      toast.success('User deleted successfully');
       await fetchMELUsers();
     } catch (error) {
-      console.error('Error deleting MEL user:', error);
-      toast.error('Failed to delete MEL user');
-      throw error;
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user');
     }
   };
 
-  const addRental = async (rentalData: Omit<Rental, 'id'>) => {
+  const addRental = async (rentalData: Omit<Rental, 'id' | 'created_at'>) => {
     try {
-      const { error } = await supabase
-        .from('patient_history')
-        .insert([rentalData]);
-      
+      const { error } = await supabase.from('patient_history').insert([rentalData]);
       if (error) throw error;
-      
-      toast.success('Rental added successfully!');
+      toast.success('Rental added successfully');
       await fetchRentals();
     } catch (error) {
       console.error('Error adding rental:', error);
       toast.error('Failed to add rental');
-      throw error;
     }
   };
 
   const updateRental = async (id: string, updates: Partial<Rental>) => {
     try {
-      const { error } = await supabase
-        .from('patient_history')
-        .update(updates)
-        .eq('id', id);
-      
+      const { error } = await supabase.from('patient_history').update(updates).eq('id', id);
       if (error) throw error;
-      
-      toast.success('Rental updated successfully!');
+      toast.success('Rental updated successfully');
       await fetchRentals();
     } catch (error) {
       console.error('Error updating rental:', error);
       toast.error('Failed to update rental');
-      throw error;
     }
   };
 
-  const getOverdueRentals = () => {
-    const today = new Date();
+  const getOverdueRentals = (): Rental[] => {
+    const today = new Date().toISOString().split('T')[0];
     return rentals.filter(rental => 
-      rental.status === 'rented' && new Date(rental.return_date) < today
+      rental.return_date < today && rental.status !== 'returned'
     );
   };
 
-  const value = {
+  useEffect(() => {
+    refreshData();
+  }, [user]);
+
+  const contextValue: SupabaseMELContextType = {
     equipment,
     melUsers,
     rentals,
@@ -521,10 +450,8 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <SupabaseMELContext.Provider value={value}>
+    <SupabaseMELContext.Provider value={contextValue}>
       {children}
     </SupabaseMELContext.Provider>
   );
 };
-
-export default SupabaseMELProvider;
