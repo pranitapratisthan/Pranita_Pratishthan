@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,7 +24,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,18 +36,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Checking roles for user:', userId);
       
       // Check if user is admin
-      const { data: adminData, error: adminError } = await supabase
-        .from('admins')
-        .select('*')
+      const adminQuery = (supabase.from('admins') as any);
+      const { data: adminData, error: adminError } = await adminQuery
+        .select('user_id')
         .eq('user_id', userId)
         .single();
 
       console.log('Admin query result:', adminData, adminError);
       
       // Check if user is MEL user
-      const { data: melData, error: melError } = await supabase
-        .from('mel_users')
-        .select('*')
+      const melQuery = (supabase.from('mel_users') as any);
+      const { data: melData, error: melError } = await melQuery
+        .select('user_id')
         .eq('user_id', userId)
         .single();
 
