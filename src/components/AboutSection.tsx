@@ -66,7 +66,7 @@ const AboutSection = () => {
                 {president?.name || 'श्री. राज पाटील'}
               </h3>
               <p className="text-gray-700 leading-relaxed">
-                {president?.message ||
+                {president?.bio ||
                   'समाजसेवेच्या क्षेत्रात अग्रणी असलेल्या प्रणिता प्रतिष्ठानच्या अध्यक्षपदी कार्यरत आहेत. त्यांच्या नेतृत्वाखाली संस्थेने अनेक महत्वाचे प्रकल्प राबवले आहेत.'}
               </p>
             </CardContent>
@@ -89,7 +89,7 @@ const AboutSection = () => {
                 {secretary?.name || 'सौ. प्रिया शर्मा'}
               </h3>
               <p className="text-gray-700 leading-relaxed">
-                {secretary?.message ||
+                {secretary?.bio ||
                   'संस्थेच्या दैनंदिन कामकाजाची जबाबदारी सांभाळणाऱ्या सचिव म्हणून कार्यरत आहेत. त्यांच्या कुशल व्यवस्थापनामुळे संस्थेची कार्ये सुरळीतपणे चालतात.'}
               </p>
             </CardContent>

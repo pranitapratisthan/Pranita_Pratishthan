@@ -103,6 +103,9 @@ const MELAdminPanel = ({ onBackToUser }: MELAdminPanelProps) => {
     );
   }
 
+  // Temporarily disable problematic MEL admin functionality until schema is fixed
+  return null;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-white shadow-sm border-b">

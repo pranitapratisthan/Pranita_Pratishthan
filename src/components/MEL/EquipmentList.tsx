@@ -12,7 +12,7 @@ const EquipmentList = () => {
         <Card key={item.id} className="overflow-hidden">
           <div className="aspect-video relative">
             <img
-              src={item.photo_url || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=300&h=200&fit=crop'}
+              src={item.image_url || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=300&h=200&fit=crop'}
               alt={item.name}
               className="w-full h-full object-cover"
             />
@@ -37,7 +37,7 @@ const EquipmentList = () => {
             
             <div className="flex justify-between text-sm">
               <span>Rental Period:</span>
-              <span>{item.rental_duration} days</span>
+              <span>{item.rental_duration_days} days</span>
             </div>
             
             <div className="flex justify-between text-sm">
