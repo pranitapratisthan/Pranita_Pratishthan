@@ -28,25 +28,37 @@ type MELUser = {
 
 type Rental = {
   id: string;
-  equipment_id: string;
-  equipment_name: string;
+  equipment_id: string | null;
+  mel_user_id: string | null;
   patient_name: string;
-  mobile_number: string;
+  patient_address: string | null;
+  patient_mobile: string | null;
+  patient_aadhar: string | null;
+  equipment_name: string;
+  deposit_amount: number;
   pickup_date: string;
-  return_date: string;
+  expected_return_date: string;
+  actual_return_date: string | null;
   status: string;
-  created_by_user_id: string;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 type PresidentSecretary = {
   id: string;
+  position: string;
   name: string;
-  role: string; // 'president' or 'secretary'
-  message: string | null;
   photo_url: string | null;
-  photo_path: string | null;
+  bio: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  tenure_start: string | null;
+  tenure_end: string | null;
+  is_current: boolean;
+  role: string;
   created_at: string;
+  updated_at: string;
 };
 
 type PopupEvent = {
@@ -76,13 +88,13 @@ interface SupabaseMELContextType {
   updateEquipment: (id: string, updates: Partial<Equipment>) => Promise<void>;
   deleteEquipment: (id: string) => Promise<void>;
   deleteMELUser: (id: string) => Promise<void>;
-  addRental: (rental: Omit<Rental, 'id' | 'created_at'>) => Promise<void>;
+  addRental: (rental: Omit<Rental, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   updateRental: (id: string, updates: Partial<Rental>) => Promise<void>;
   getOverdueRentals: () => Rental[];
   setCurrentMELUser: (user: MELUser | null) => void;
   refreshData: () => Promise<void>;
   updatePresidentSecretary: (
-    updates: Omit<PresidentSecretary, 'id' | 'created_at'> & { id?: string; photo_file?: File | null }
+    updates: Omit<PresidentSecretary, 'id' | 'created_at' | 'updated_at'> & { id?: string; photo_file?: File | null }
   ) => Promise<void>;
   fetchPresidentAndSecretary: () => Promise<void>;
 }
@@ -302,21 +314,27 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePresidentSecretary = async (
-    updates: Omit<PresidentSecretary, 'id' | 'created_at'> & { id?: string; photo_file?: File | null }
+    updates: Omit<PresidentSecretary, 'id' | 'created_at' | 'updated_at'> & { id?: string; photo_file?: File | null }
   ) => {
     try {
       let photoUrl: string | null = updates.photo_url || null;
-      let photoPath: string | null = null;
 
       if (updates.photo_file) {
         photoUrl = await uploadPresidentSecretaryPhoto(updates.photo_file);
-        photoPath = `president_secretary/${updates.photo_file.name}`;
       }
 
       const payload = {
-        ...updates,
+        position: updates.role, // Map role to position
+        name: updates.name,
+        bio: updates.bio,
         photo_url: photoUrl,
-        photo_path: photoPath,
+        role: updates.role,
+        contact_email: updates.contact_email,
+        contact_phone: updates.contact_phone,
+        tenure_start: updates.tenure_start,
+        tenure_end: updates.tenure_end,
+        is_current: updates.is_current,
+        updated_at: new Date().toISOString(),
       };
 
       const recordId = updates.id;
@@ -390,7 +408,7 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addRental = async (rentalData: Omit<Rental, 'id' | 'created_at'>) => {
+  const addRental = async (rentalData: Omit<Rental, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { error } = await supabase.from('patient_history').insert([rentalData]);
       if (error) throw error;
@@ -417,7 +435,7 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
   const getOverdueRentals = (): Rental[] => {
     const today = new Date().toISOString().split('T')[0];
     return rentals.filter(rental => 
-      rental.return_date < today && rental.status !== 'returned'
+      rental.status === 'active' && new Date(rental.expected_return_date) < new Date(today)
     );
   };
 

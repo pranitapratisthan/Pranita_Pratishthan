@@ -500,69 +500,105 @@ export type Database = {
       patient_history: {
         Row: {
           id: string
-          equipment_id: string
-          equipment_name: string
+          equipment_id: string | null
+          mel_user_id: string | null
           patient_name: string
-          mobile_number: string
+          patient_address: string | null
+          patient_mobile: string | null
+          patient_aadhar: string | null
+          equipment_name: string
+          deposit_amount: number
           pickup_date: string
-          return_date: string
+          expected_return_date: string
+          actual_return_date: string | null
           status: string
-          created_by_user_id: string
+          notes: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
-          equipment_id: string
-          equipment_name: string
+          equipment_id?: string | null
+          mel_user_id?: string | null
           patient_name: string
-          mobile_number: string
+          patient_address?: string | null
+          patient_mobile?: string | null
+          patient_aadhar?: string | null
+          equipment_name: string
+          deposit_amount?: number
           pickup_date: string
-          return_date: string
-          status: string
-          created_by_user_id: string
+          expected_return_date: string
+          actual_return_date?: string | null
+          status?: string
+          notes?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          equipment_id?: string
-          equipment_name?: string
+          equipment_id?: string | null
+          mel_user_id?: string | null
           patient_name?: string
-          mobile_number?: string
+          patient_address?: string | null
+          patient_mobile?: string | null
+          patient_aadhar?: string | null
+          equipment_name?: string
+          deposit_amount?: number
           pickup_date?: string
-          return_date?: string
+          expected_return_date?: string
+          actual_return_date?: string | null
           status?: string
-          created_by_user_id?: string
+          notes?: string | null
           created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
       president_secretary: {
         Row: {
           id: string
+          position: string
           name: string
-          role: string
-          message: string | null
           photo_url: string | null
-          photo_path: string | null
+          bio: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          tenure_start: string | null
+          tenure_end: string | null
+          is_current: boolean
+          role: string
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
+          position: string
           name: string
-          role: string
-          message?: string | null
           photo_url?: string | null
-          photo_path?: string | null
+          bio?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          tenure_start?: string | null
+          tenure_end?: string | null
+          is_current?: boolean
+          role?: string
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
+          position?: string
           name?: string
-          role?: string
-          message?: string | null
           photo_url?: string | null
-          photo_path?: string | null
+          bio?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          tenure_start?: string | null
+          tenure_end?: string | null
+          is_current?: boolean
+          role?: string
           created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
