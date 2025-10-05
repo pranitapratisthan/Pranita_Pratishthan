@@ -146,20 +146,26 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchTimelineEvents = async () => {
     console.log('AppContext: Fetching timeline events...');
     try {
+      console.log('AppContext: Supabase client exists:', !!supabase);
       const { data, error } = await supabase
         .from('timeline_events')
         .select('*')
         .order('year', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('AppContext: Timeline events error:', error);
+        throw error;
+      }
       console.log('AppContext: Timeline events data:', data);
-      setTimelineEvents(data?.map(event => ({
+      const mappedData = data?.map(event => ({
         year: event.year,
         title: event.title,
         description: event.description || '',
         icon: event.icon || 'Award',
         color: event.color || 'bg-marathi-orange'
-      })) || []);
+      })) || [];
+      console.log('AppContext: Mapped timeline events:', mappedData);
+      setTimelineEvents(mappedData);
     } catch (error) {
       console.error("Error fetching timeline events:", error);
       setTimelineEvents([]);
@@ -167,21 +173,27 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const fetchNewsItems = async () => {
+    console.log('AppContext: Fetching news items...');
     try {
       const { data, error } = await supabase
         .from('news')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      setNewsItems(data?.map(news => ({
+      if (error) {
+        console.error('AppContext: News items error:', error);
+        throw error;
+      }
+      console.log('AppContext: News items data:', data);
+      const mappedData = data?.map(news => ({
         id: news.id,
         title: news.title,
         summary: news.summary || '',
         content: news.content,
         author: news.author || '',
         date: news.date || news.created_at
-      })) || []);
+      })) || [];
+      setNewsItems(mappedData);
     } catch (error) {
       console.error("Error fetching news items:", error);
       setNewsItems([]);
@@ -189,19 +201,25 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const fetchYouTubeVideos = async () => {
+    console.log('AppContext: Fetching YouTube videos...');
     try {
       const { data, error } = await supabase
         .from('youtube_videos')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      setYouTubeVideos(data?.map(video => ({
+      if (error) {
+        console.error('AppContext: YouTube videos error:', error);
+        throw error;
+      }
+      console.log('AppContext: YouTube videos data:', data);
+      const mappedData = data?.map(video => ({
         id: video.id,
         title: video.title,
         videoId: video.video_id,
         description: video.description || ''
-      })) || []);
+      })) || [];
+      setYouTubeVideos(mappedData);
     } catch (error) {
       console.error("Error fetching YouTube videos:", error);
       setYouTubeVideos([]);
@@ -209,19 +227,25 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const fetchPrograms = async () => {
+    console.log('AppContext: Fetching programs...');
     try {
       const { data, error } = await supabase
         .from('projects')
         .select('id, name, description, details, image_url');
       
-      if (error) throw error;
-      setPrograms(data?.map(p => ({
+      if (error) {
+        console.error('AppContext: Programs error:', error);
+        throw error;
+      }
+      console.log('AppContext: Programs data:', data);
+      const mappedData = data?.map(p => ({
         id: p.id,
         name: p.name,
         description: p.description,
         details: p.details,
         image: p.image_url || undefined,
-      })) || []);
+      })) || [];
+      setPrograms(mappedData);
     } catch (error) {
       console.error("Error fetching projects:", error);
       setPrograms([]);
@@ -229,6 +253,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const fetchPopupData = async () => {
+    console.log('AppContext: Fetching popup data...');
     try {
       const { data, error } = await supabase
         .from('popup_events')
@@ -236,7 +261,11 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('enabled', true)
         .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error('AppContext: Popup data error:', error);
+        throw error;
+      }
+      console.log('AppContext: Popup data:', data);
       if (data) {
         setPopupData({
           enabled: data.enabled,
