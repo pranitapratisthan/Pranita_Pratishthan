@@ -168,11 +168,10 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
         .from('mel_users')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching current MEL user:', error);
-        return;
       }
       
       setCurrentMELUser(data || null);
@@ -272,15 +271,20 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshData = async () => {
     setLoading(true);
-    await Promise.all([
-      fetchEquipment(),
-      fetchMELUsers(),
-      fetchRentals(),
-      fetchCurrentMELUser(),
-      fetchPresidentAndSecretary(),
-      fetchPopup(),
-    ]);
-    setLoading(false);
+    try {
+      await Promise.allSettled([
+        fetchEquipment(),
+        fetchMELUsers(),
+        fetchRentals(),
+        fetchCurrentMELUser(),
+        fetchPresidentAndSecretary(),
+        fetchPopup(),
+      ]);
+    } catch (e) {
+      console.error('SupabaseMELContext.refreshData error:', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const uploadPresidentSecretaryPhoto = async (
