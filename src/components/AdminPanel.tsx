@@ -74,7 +74,7 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
     if (president) {
       setEditingPresident({
         name: president.name,
-        message: president.bio || '',
+        message: president.message || '',
         photo: null,
         photo_url: president.photo_url || '',
       });
@@ -82,7 +82,7 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
     if (secretary) {
       setEditingSecretary({
         name: secretary.name,
-        message: secretary.bio || '',
+        message: secretary.message || '',
         photo: null,
         photo_url: secretary.photo_url || '',
       });
@@ -103,9 +103,10 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
       id: president?.id,
       name: editingPresident.name,
       role: 'president',
-      bio: editingPresident.message,
+      message: editingPresident.message,
       photo_url: editingPresident.photo_url,
-      photo_file: editingPresident.photo, // The File object
+      photo_path: null,
+      photo_file: editingPresident.photo,
     });
     await fetchPresidentAndSecretary();
   };
@@ -115,9 +116,10 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
       id: secretary?.id,
       name: editingSecretary.name,
       role: 'secretary',
-      bio: editingSecretary.message,
+      message: editingSecretary.message,
       photo_url: editingSecretary.photo_url,
-      photo_file: editingSecretary.photo, // The File object
+      photo_path: null,
+      photo_file: editingSecretary.photo,
     });
     await fetchPresidentAndSecretary();
   };

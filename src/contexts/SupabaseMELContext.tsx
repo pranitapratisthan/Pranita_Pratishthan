@@ -3,16 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 
-// Use Supabase generated types
+// Use Supabase generated types matching actual DB schema
 type Equipment = {
   id: string;
   name: string;
   photo_url: string | null;
+  photo_path: string | null;
   total_quantity: number;
   available_quantity: number;
   rental_duration: number;
   deposit_amount: number;
   created_at: string;
+  updated_at: string;
 };
 
 type MELUser = {
@@ -20,44 +22,32 @@ type MELUser = {
   user_id: string | null;
   username: string;
   full_name: string;
-  email: string | null;
+  email: string;
   created_at: string;
-  password_hash: string;
-  role: string;
+  updated_at: string;
 };
 
 type Rental = {
   id: string;
   equipment_id: string | null;
-  mel_user_id: string | null;
-  patient_name: string;
-  patient_address: string | null;
-  patient_mobile: string | null;
-  patient_aadhar: string | null;
   equipment_name: string;
-  deposit_amount: number;
+  patient_name: string;
+  mobile_number: string;
   pickup_date: string;
-  expected_return_date: string;
-  actual_return_date: string | null;
+  return_date: string;
   status: string;
-  notes: string | null;
+  created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
 };
 
 type PresidentSecretary = {
   id: string;
-  position: string;
-  name: string;
-  photo_url: string | null;
-  bio: string | null;
-  contact_email: string | null;
-  contact_phone: string | null;
-  tenure_start: string | null;
-  tenure_end: string | null;
-  is_current: boolean;
   role: string;
-  created_at: string;
+  name: string;
+  message: string | null;
+  photo_url: string | null;
+  photo_path: string | null;
   updated_at: string;
 };
 
@@ -94,7 +84,7 @@ interface SupabaseMELContextType {
   setCurrentMELUser: (user: MELUser | null) => void;
   refreshData: () => Promise<void>;
   updatePresidentSecretary: (
-    updates: Omit<PresidentSecretary, 'id' | 'created_at' | 'updated_at'> & { id?: string; photo_file?: File | null }
+    updates: Omit<PresidentSecretary, 'id' | 'updated_at'> & { id?: string; photo_file?: File | null }
   ) => Promise<void>;
   fetchPresidentAndSecretary: () => Promise<void>;
 }
@@ -314,7 +304,7 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePresidentSecretary = async (
-    updates: Omit<PresidentSecretary, 'id' | 'created_at' | 'updated_at'> & { id?: string; photo_file?: File | null }
+    updates: Omit<PresidentSecretary, 'id' | 'updated_at'> & { id?: string; photo_file?: File | null }
   ) => {
     try {
       let photoUrl: string | null = updates.photo_url || null;
@@ -324,16 +314,10 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const payload = {
-        position: updates.role, // Map role to position
-        name: updates.name,
-        bio: updates.bio,
-        photo_url: photoUrl,
         role: updates.role,
-        contact_email: updates.contact_email,
-        contact_phone: updates.contact_phone,
-        tenure_start: updates.tenure_start,
-        tenure_end: updates.tenure_end,
-        is_current: updates.is_current,
+        name: updates.name,
+        message: updates.message,
+        photo_url: photoUrl,
         updated_at: new Date().toISOString(),
       };
 
@@ -435,7 +419,7 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
   const getOverdueRentals = (): Rental[] => {
     const today = new Date().toISOString().split('T')[0];
     return rentals.filter(rental => 
-      rental.status === 'active' && new Date(rental.expected_return_date) < new Date(today)
+      rental.status === 'rented' && new Date(rental.return_date) < new Date(today)
     );
   };
 

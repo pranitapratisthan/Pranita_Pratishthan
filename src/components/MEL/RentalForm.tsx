@@ -68,8 +68,80 @@ const RentalForm = () => {
 
   const availableEquipment = equipment.filter(eq => eq.available_quantity > 0);
 
-  // Temporarily disable problematic rental form until schema is fixed
-  return <div className="p-4">Rental form temporarily disabled for schema updates</div>;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Create New Rental</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Patient Name</label>
+            <Input
+              required
+              value={formData.patientName}
+              onChange={(e) => setFormData({...formData, patientName: e.target.value})}
+              placeholder="Enter patient name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Mobile Number</label>
+            <Input
+              required
+              value={formData.mobileNumber}
+              onChange={(e) => setFormData({...formData, mobileNumber: e.target.value})}
+              placeholder="Enter mobile number"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Equipment</label>
+            <Select
+              value={formData.equipmentId}
+              onValueChange={(value) => setFormData({...formData, equipmentId: value})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select equipment" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableEquipment.map((eq) => (
+                  <SelectItem key={eq.id} value={eq.id}>
+                    {eq.name} (Available: {eq.available_quantity})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Pickup Date</label>
+            <Input
+              type="date"
+              required
+              value={formData.pickupDate}
+              onChange={(e) => setFormData({...formData, pickupDate: e.target.value})}
+            />
+          </div>
+
+          {selectedEquipment && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Rental Duration:</strong> {selectedEquipment.rental_duration} days
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Deposit Amount:</strong> ₹{selectedEquipment.deposit_amount}
+              </p>
+            </div>
+          )}
+
+          <Button type="submit" className="w-full">
+            Create Rental
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
 };
 
 export default RentalForm;

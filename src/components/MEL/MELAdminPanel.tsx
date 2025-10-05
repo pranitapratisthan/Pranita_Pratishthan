@@ -32,10 +32,12 @@ const MELAdminPanel = ({ onBackToUser }: MELAdminPanelProps) => {
   const [newEquipment, setNewEquipment] = useState({
     name: '',
     photo_url: '',
+    photo_path: null as string | null,
     total_quantity: 0,
     available_quantity: 0,
     rental_duration: 7,
-    deposit_amount: 0
+    deposit_amount: 0,
+    updated_at: new Date().toISOString()
   });
 
   const [newUser, setNewUser] = useState({
@@ -56,10 +58,12 @@ const MELAdminPanel = ({ onBackToUser }: MELAdminPanelProps) => {
       setNewEquipment({
         name: '',
         photo_url: '',
+        photo_path: null,
         total_quantity: 0,
         available_quantity: 0,
         rental_duration: 7,
-        deposit_amount: 0
+        deposit_amount: 0,
+        updated_at: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error adding equipment:', error);
@@ -102,9 +106,6 @@ const MELAdminPanel = ({ onBackToUser }: MELAdminPanelProps) => {
       </div>
     );
   }
-
-  // Temporarily disable problematic MEL admin functionality until schema is fixed
-  return null;
 
   return (
     <div className="min-h-screen bg-gray-100">
