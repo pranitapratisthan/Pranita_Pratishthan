@@ -17,76 +17,67 @@ export type Database = {
       admins: {
         Row: {
           created_at: string
-          email: string | null
+          email: string
           full_name: string
           id: string
-          last_login: string | null
-          password_hash: string
-          role: string
-          username: string
+          role: string | null
+          updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
-          email?: string | null
+          email: string
           full_name: string
           id?: string
-          last_login?: string | null
-          password_hash: string
-          role?: string
-          username: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
-          email?: string | null
+          email?: string
           full_name?: string
           id?: string
-          last_login?: string | null
-          password_hash?: string
-          role?: string
-          username?: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
-      equipment: {
+      equipment_inventory: {
         Row: {
           available_quantity: number
-          category: string | null
           created_at: string
-          deposit_amount: number | null
-          description: string | null
+          deposit_amount: number
           id: string
-          image_url: string | null
           name: string
-          rental_duration_days: number | null
-          status: string | null
+          photo_path: string | null
+          photo_url: string | null
+          rental_duration: number
           total_quantity: number
           updated_at: string
         }
         Insert: {
           available_quantity?: number
-          category?: string | null
           created_at?: string
-          deposit_amount?: number | null
-          description?: string | null
+          deposit_amount?: number
           id?: string
-          image_url?: string | null
           name: string
-          rental_duration_days?: number | null
-          status?: string | null
+          photo_path?: string | null
+          photo_url?: string | null
+          rental_duration?: number
           total_quantity?: number
           updated_at?: string
         }
         Update: {
           available_quantity?: number
-          category?: string | null
           created_at?: string
-          deposit_amount?: number | null
-          description?: string | null
+          deposit_amount?: number
           id?: string
-          image_url?: string | null
           name?: string
-          rental_duration_days?: number | null
-          status?: string | null
+          photo_path?: string | null
+          photo_url?: string | null
+          rental_duration?: number
           total_quantity?: number
           updated_at?: string
         }
@@ -99,9 +90,9 @@ export type Database = {
           email: string | null
           feedback: string
           id: string
-          is_read: boolean
+          is_read: boolean | null
           name: string
-          rating: number
+          rating: number | null
           suggestion: string | null
         }
         Insert: {
@@ -110,9 +101,9 @@ export type Database = {
           email?: string | null
           feedback: string
           id?: string
-          is_read?: boolean
+          is_read?: boolean | null
           name: string
-          rating: number
+          rating?: number | null
           suggestion?: string | null
         }
         Update: {
@@ -121,9 +112,9 @@ export type Database = {
           email?: string | null
           feedback?: string
           id?: string
-          is_read?: boolean
+          is_read?: boolean | null
           name?: string
-          rating?: number
+          rating?: number | null
           suggestion?: string | null
         }
         Relationships: []
@@ -131,33 +122,30 @@ export type Database = {
       mel_users: {
         Row: {
           created_at: string
+          email: string
           full_name: string
           id: string
-          password_hash: string
-          role: string
-          username: string
+          updated_at: string
           user_id: string | null
-          email: string | null
+          username: string
         }
         Insert: {
           created_at?: string
+          email: string
           full_name: string
           id?: string
-          password_hash: string
-          role?: string
-          username: string
+          updated_at?: string
           user_id?: string | null
-          email?: string | null
+          username: string
         }
         Update: {
           created_at?: string
+          email?: string
           full_name?: string
           id?: string
-          password_hash?: string
-          role?: string
-          username?: string
+          updated_at?: string
           user_id?: string | null
-          email?: string | null
+          username?: string
         }
         Relationships: []
       }
@@ -170,6 +158,7 @@ export type Database = {
           id: string
           summary: string | null
           title: string
+          updated_at: string
         }
         Insert: {
           author?: string | null
@@ -179,6 +168,7 @@ export type Database = {
           id?: string
           summary?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
           author?: string | null
@@ -188,61 +178,47 @@ export type Database = {
           id?: string
           summary?: string | null
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
       patient_history: {
         Row: {
-          actual_return_date: string | null
           created_at: string
-          deposit_amount: number | null
+          created_by_user_id: string | null
           equipment_id: string | null
           equipment_name: string
-          expected_return_date: string
           id: string
-          mel_user_id: string | null
-          notes: string | null
-          patient_aadhar: string | null
-          patient_address: string | null
-          patient_mobile: string | null
+          mobile_number: string
           patient_name: string
           pickup_date: string
+          return_date: string
           status: string | null
           updated_at: string
         }
         Insert: {
-          actual_return_date?: string | null
           created_at?: string
-          deposit_amount?: number | null
+          created_by_user_id?: string | null
           equipment_id?: string | null
           equipment_name: string
-          expected_return_date: string
           id?: string
-          mel_user_id?: string | null
-          notes?: string | null
-          patient_aadhar?: string | null
-          patient_address?: string | null
-          patient_mobile?: string | null
+          mobile_number: string
           patient_name: string
           pickup_date: string
+          return_date: string
           status?: string | null
           updated_at?: string
         }
         Update: {
-          actual_return_date?: string | null
           created_at?: string
-          deposit_amount?: number | null
+          created_by_user_id?: string | null
           equipment_id?: string | null
           equipment_name?: string
-          expected_return_date?: string
           id?: string
-          mel_user_id?: string | null
-          notes?: string | null
-          patient_aadhar?: string | null
-          patient_address?: string | null
-          patient_mobile?: string | null
+          mobile_number?: string
           patient_name?: string
           pickup_date?: string
+          return_date?: string
           status?: string | null
           updated_at?: string
         }
@@ -251,14 +227,7 @@ export type Database = {
             foreignKeyName: "patient_history_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
-            referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "patient_history_mel_user_id_fkey"
-            columns: ["mel_user_id"]
-            isOneToOne: false
-            referencedRelation: "mel_users"
+            referencedRelation: "equipment_inventory"
             referencedColumns: ["id"]
           },
         ]
@@ -268,108 +237,107 @@ export type Database = {
           category: string | null
           created_at: string
           id: string
-          image_path: string | null
+          image_path: string
           image_url: string
+          project_id: string | null
           title: string
+          uploaded_by: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string
           id?: string
-          image_path?: string | null
+          image_path: string
           image_url: string
+          project_id?: string | null
           title: string
+          uploaded_by?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string
           id?: string
-          image_path?: string | null
+          image_path?: string
           image_url?: string
+          project_id?: string | null
           title?: string
+          uploaded_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_photo_gallery_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       popup_events: {
         Row: {
+          banner_image_path: string | null
           banner_image_url: string | null
           created_at: string
           date: string | null
           description: string | null
-          enabled: boolean
+          enabled: boolean | null
           id: string
           location: string | null
           title: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
+          banner_image_path?: string | null
           banner_image_url?: string | null
           created_at?: string
           date?: string | null
           description?: string | null
-          enabled?: boolean
+          enabled?: boolean | null
           id?: string
           location?: string | null
           title: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
+          banner_image_path?: string | null
           banner_image_url?: string | null
           created_at?: string
           date?: string | null
           description?: string | null
-          enabled?: boolean
+          enabled?: boolean | null
           id?: string
           location?: string | null
           title?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       president_secretary: {
         Row: {
-          bio: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          created_at: string
           id: string
-          is_current: boolean | null
+          message: string | null
           name: string
+          photo_path: string | null
           photo_url: string | null
-          position: string
-          role: string | null
-          tenure_end: string | null
-          tenure_start: string | null
+          role: string
           updated_at: string
         }
         Insert: {
-          bio?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
           id?: string
-          is_current?: boolean | null
+          message?: string | null
           name: string
+          photo_path?: string | null
           photo_url?: string | null
-          position: string
-          role?: string | null
-          tenure_end?: string | null
-          tenure_start?: string | null
+          role: string
           updated_at?: string
         }
         Update: {
-          bio?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
           id?: string
-          is_current?: boolean | null
+          message?: string | null
           name?: string
+          photo_path?: string | null
           photo_url?: string | null
-          position?: string
-          role?: string | null
-          tenure_end?: string | null
-          tenure_start?: string | null
+          role?: string
           updated_at?: string
         }
         Relationships: []
@@ -378,26 +346,32 @@ export type Database = {
         Row: {
           created_at: string
           description: string
-          details: string
+          details: string | null
           id: string
+          image_path: string | null
           image_url: string | null
           name: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
           description: string
-          details: string
+          details?: string | null
           id?: string
+          image_path?: string | null
           image_url?: string | null
           name: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string
-          details?: string
+          details?: string | null
           id?: string
+          image_path?: string | null
           image_url?: string | null
           name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -436,187 +410,31 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          is_news: boolean | null
+          is_news: boolean
           thumbnail_url: string | null
           title: string
+          updated_at: string
           video_id: string
-          is_news: boolean
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
-          is_news?: boolean | null
+          is_news?: boolean
           thumbnail_url?: string | null
           title: string
+          updated_at?: string
           video_id: string
-          is_news?: boolean
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
-          is_news?: boolean | null
+          is_news?: boolean
           thumbnail_url?: string | null
           title?: string
+          updated_at?: string
           video_id?: string
-          is_news?: boolean
-        }
-        Relationships: []
-      }
-      equipment_inventory: {
-        Row: {
-          id: string
-          name: string
-          photo_url: string | null
-          total_quantity: number
-          available_quantity: number
-          rental_duration: number
-          deposit_amount: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          photo_url?: string | null
-          total_quantity: number
-          available_quantity: number
-          rental_duration: number
-          deposit_amount: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          photo_url?: string | null
-          total_quantity?: number
-          available_quantity?: number
-          rental_duration?: number
-          deposit_amount?: number
-          created_at?: string
-        }
-        Relationships: []
-      }
-      patient_history: {
-        Row: {
-          id: string
-          equipment_id: string | null
-          mel_user_id: string | null
-          patient_name: string
-          patient_address: string | null
-          patient_mobile: string | null
-          patient_aadhar: string | null
-          equipment_name: string
-          deposit_amount: number
-          pickup_date: string
-          expected_return_date: string
-          actual_return_date: string | null
-          status: string
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          equipment_id?: string | null
-          mel_user_id?: string | null
-          patient_name: string
-          patient_address?: string | null
-          patient_mobile?: string | null
-          patient_aadhar?: string | null
-          equipment_name: string
-          deposit_amount?: number
-          pickup_date: string
-          expected_return_date: string
-          actual_return_date?: string | null
-          status?: string
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          equipment_id?: string | null
-          mel_user_id?: string | null
-          patient_name?: string
-          patient_address?: string | null
-          patient_mobile?: string | null
-          patient_aadhar?: string | null
-          equipment_name?: string
-          deposit_amount?: number
-          pickup_date?: string
-          expected_return_date?: string
-          actual_return_date?: string | null
-          status?: string
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      president_secretary: {
-        Row: {
-          id: string
-          position: string
-          name: string
-          photo_url: string | null
-          bio: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          tenure_start: string | null
-          tenure_end: string | null
-          is_current: boolean
-          role: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          position: string
-          name: string
-          photo_url?: string | null
-          bio?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          tenure_start?: string | null
-          tenure_end?: string | null
-          is_current?: boolean
-          role?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          position?: string
-          name?: string
-          photo_url?: string | null
-          bio?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          tenure_start?: string | null
-          tenure_end?: string | null
-          is_current?: boolean
-          role?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      admins: {
-        Row: {
-          id: string
-          user_id: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          created_at?: string
         }
         Relationships: []
       }
@@ -625,15 +443,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_mel_user_safe_info: {
-        Args: { user_id?: string }
-        Returns: {
-          created_at: string
-          full_name: string
-          id: string
-          role: string
-          username: string
-        }[]
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
