@@ -1,13 +1,12 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useSupabaseMEL } from '@/contexts/SupabaseMELContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { validateRental } from '@/lib/validation';
 
 const RentalForm = () => {
   const { equipment, addRental } = useSupabaseMEL();
@@ -24,6 +23,13 @@ const RentalForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form data using zod schema
+    const validation = validateRental(formData);
+    if (!validation.success) {
+      toast.error((validation as { success: false; error: string }).error);
+      return;
+    }
+
     if (!selectedEquipment || selectedEquipment.available_quantity === 0) {
       toast.error('Selected equipment is not available');
       return;
@@ -39,7 +45,7 @@ const RentalForm = () => {
     returnDate.setDate(returnDate.getDate() + selectedEquipment.rental_duration);
 
     const rental = {
-      patient_name: formData.patientName,
+      patient_name: formData.patientName.trim(),
       mobile_number: formData.mobileNumber,
       equipment_id: formData.equipmentId,
       equipment_name: selectedEquipment.name,
@@ -82,6 +88,7 @@ const RentalForm = () => {
               value={formData.patientName}
               onChange={(e) => setFormData({...formData, patientName: e.target.value})}
               placeholder="Enter patient name"
+              maxLength={100}
             />
           </div>
 
@@ -90,8 +97,14 @@ const RentalForm = () => {
             <Input
               required
               value={formData.mobileNumber}
-              onChange={(e) => setFormData({...formData, mobileNumber: e.target.value})}
-              placeholder="Enter mobile number"
+              onChange={(e) => {
+                // Only allow digits, max 10
+                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                setFormData({...formData, mobileNumber: value});
+              }}
+              placeholder="Enter 10-digit mobile number"
+              maxLength={10}
+              pattern="[0-9]{10}"
             />
           </div>
 

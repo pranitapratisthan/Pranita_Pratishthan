@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Send, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { feedbackSchema } from '@/lib/validation';
 
 const DynamicFeedbackForm = () => {
   const [formData, setFormData] = useState({
@@ -21,17 +21,34 @@ const DynamicFeedbackForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form data using zod schema
+    const validation = feedbackSchema.safeParse({
+      name: formData.name,
+      email: formData.email || undefined,
+      contact_number: formData.contact_number || undefined,
+      feedback: formData.feedback,
+      suggestion: formData.suggestion || undefined,
+      rating: formData.rating || undefined
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase
         .from('feedback')
         .insert([{
-          name: formData.name,
-          email: formData.email,
-          contact_number: formData.contact_number,
-          feedback: formData.feedback,
-          suggestion: formData.suggestion,
+          name: formData.name.trim(),
+          email: formData.email.trim() || null,
+          contact_number: formData.contact_number || null,
+          feedback: formData.feedback.trim(),
+          suggestion: formData.suggestion.trim() || null,
           rating: formData.rating
         }]);
 
@@ -85,6 +102,7 @@ const DynamicFeedbackForm = () => {
                     onChange={handleInputChange}
                     placeholder="आपले पूर्ण नाव"
                     required
+                    maxLength={100}
                     className="border-marathi-orange/30 focus:border-marathi-orange"
                   />
                 </div>
@@ -100,6 +118,7 @@ const DynamicFeedbackForm = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="आपला ईमेल पत्ता"
+                    maxLength={255}
                     className="border-marathi-orange/30 focus:border-marathi-orange"
                   />
                 </div>
@@ -112,8 +131,14 @@ const DynamicFeedbackForm = () => {
                     id="contact_number"
                     name="contact_number"
                     value={formData.contact_number}
-                    onChange={handleInputChange}
-                    placeholder="आपला मोबाइल नंबर"
+                    onChange={(e) => {
+                      // Only allow digits, max 10
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData(prev => ({ ...prev, contact_number: value }));
+                    }}
+                    placeholder="आपला मोबाइल नंबर (10 अंक)"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                     className="border-marathi-orange/30 focus:border-marathi-orange"
                   />
                 </div>
@@ -149,6 +174,7 @@ const DynamicFeedbackForm = () => {
                   placeholder="आपला अभिप्राय इथे लिहा..."
                   rows={4}
                   required
+                  maxLength={2000}
                   className="border-marathi-orange/30 focus:border-marathi-orange"
                 />
               </div>
@@ -164,6 +190,7 @@ const DynamicFeedbackForm = () => {
                   onChange={handleInputChange}
                   placeholder="आपल्या सुचना इथे लिहा..."
                   rows={3}
+                  maxLength={2000}
                   className="border-marathi-orange/30 focus:border-marathi-orange"
                 />
               </div>
