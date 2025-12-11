@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useAppContext } from '@/contexts/AppContext';
 import { supabase } from '@/integrations/supabase/client';
+import { validateFeedback } from '@/lib/validation';
 
 const FeedbackForm = () => {
   const { addFeedback } = useAppContext();
@@ -24,8 +25,10 @@ const FeedbackForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.feedback) {
-      toast.error('कृपया नाव आणि प्रतिक्रिया भरा');
+    // Validate form data using zod schema
+    const validation = validateFeedback(formData);
+    if (!validation.success) {
+      toast.error((validation as { success: false; error: string }).error);
       return;
     }
 
@@ -98,6 +101,7 @@ const FeedbackForm = () => {
                   placeholder="तुमचे नाव लिहा"
                   className="border-marathi-orange/30 focus:border-marathi-orange"
                   required
+                  maxLength={100}
                 />
               </div>
               
@@ -112,6 +116,7 @@ const FeedbackForm = () => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="तुमचा ईमेल पत्ता"
                   className="border-marathi-orange/30 focus:border-marathi-orange"
+                  maxLength={255}
                 />
               </div>
             </div>
@@ -124,9 +129,15 @@ const FeedbackForm = () => {
                 id="contactNumber"
                 type="tel"
                 value={formData.contactNumber}
-                onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                placeholder="तुमचा मोबाइल नंबर"
+                onChange={(e) => {
+                  // Only allow digits
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setFormData({ ...formData, contactNumber: value });
+                }}
+                placeholder="तुमचा मोबाइल नंबर (10 अंक)"
                 className="border-marathi-orange/30 focus:border-marathi-orange"
+                maxLength={10}
+                pattern="[0-9]{10}"
               />
             </div>
 
@@ -170,6 +181,7 @@ const FeedbackForm = () => {
                 rows={4}
                 className="border-marathi-orange/30 focus:border-marathi-orange"
                 required
+                maxLength={2000}
               />
             </div>
 
@@ -185,6 +197,7 @@ const FeedbackForm = () => {
                 placeholder="आमच्या कार्यात सुधारणेसाठी तुमच्या सुचना..."
                 rows={3}
                 className="border-marathi-orange/30 focus:border-marathi-orange"
+                maxLength={2000}
               />
             </div>
 
