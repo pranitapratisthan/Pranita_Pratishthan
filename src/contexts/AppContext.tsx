@@ -146,7 +146,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchTimelineEvents = async () => {
     console.log('AppContext: Fetching timeline events...');
     try {
-      console.log('AppContext: Supabase client exists:', !!supabase);
       const { data, error } = await supabase
         .from('timeline_events')
         .select('*')
@@ -156,7 +155,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('AppContext: Timeline events error:', error);
         throw error;
       }
-      console.log('AppContext: Timeline events data:', data);
       const mappedData = data?.map(event => ({
         year: event.year,
         title: event.title,
@@ -164,10 +162,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         icon: event.icon || 'Award',
         color: event.color || 'bg-marathi-orange'
       })) || [];
-      console.log('AppContext: Mapped timeline events:', mappedData);
       setTimelineEvents(mappedData);
-    } catch (error) {
-      console.error("Error fetching timeline events:", error);
+    } catch (error: any) {
+      console.error("Error fetching timeline events:", error?.message || error);
       setTimelineEvents([]);
     }
   };
@@ -184,7 +181,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('AppContext: News items error:', error);
         throw error;
       }
-      console.log('AppContext: News items data:', data);
       const mappedData = data?.map(news => ({
         id: news.id,
         title: news.title,
@@ -194,8 +190,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         date: news.date || news.created_at
       })) || [];
       setNewsItems(mappedData);
-    } catch (error) {
-      console.error("Error fetching news items:", error);
+    } catch (error: any) {
+      console.error("Error fetching news items:", error?.message || error);
       setNewsItems([]);
     }
   };
@@ -212,7 +208,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('AppContext: YouTube videos error:', error);
         throw error;
       }
-      console.log('AppContext: YouTube videos data:', data);
       const mappedData = data?.map(video => ({
         id: video.id,
         title: video.title,
@@ -220,8 +215,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         description: video.description || ''
       })) || [];
       setYouTubeVideos(mappedData);
-    } catch (error) {
-      console.error("Error fetching YouTube videos:", error);
+    } catch (error: any) {
+      console.error("Error fetching YouTube videos:", error?.message || error);
       setYouTubeVideos([]);
     }
   };
@@ -237,7 +232,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('AppContext: Programs error:', error);
         throw error;
       }
-      console.log('AppContext: Programs data:', data);
       const mappedData = data?.map(p => ({
         id: p.id,
         name: p.name,
@@ -246,8 +240,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         image: p.image_url || undefined,
       })) || [];
       setPrograms(mappedData);
-    } catch (error) {
-      console.error("Error fetching projects:", error);
+    } catch (error: any) {
+      console.error("Error fetching projects:", error?.message || error);
       setPrograms([]);
     }
   };
@@ -265,7 +259,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('AppContext: Popup data error:', error);
         throw error;
       }
-      console.log('AppContext: Popup data:', data);
       if (data) {
         setPopupData({
           enabled: data.enabled,
@@ -276,8 +269,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           bannerImage: data.banner_image_url || undefined
         });
       }
-    } catch (error) {
-      console.error("Error fetching popup data:", error);
+    } catch (error: any) {
+      console.error("Error fetching popup data:", error?.message || error);
     }
   };
 

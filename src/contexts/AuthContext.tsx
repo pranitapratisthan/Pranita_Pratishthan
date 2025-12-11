@@ -71,38 +71,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST - use synchronous callback to prevent deadlocks
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check roles after setting user
-          await checkUserRoles(session.user.id);
+          // CRITICAL: Defer role checking with setTimeout to prevent deadlock
+          setTimeout(() => {
+            checkUserRoles(session.user.id).finally(() => {
+              setLoading(false);
+            });
+          }, 0);
         } else {
           // Clear roles when no user
           setIsAdmin(false);
           setIsMELUser(false);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    // Get initial session
+    // THEN get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkUserRoles(session.user.id).then(() => {
+        checkUserRoles(session.user.id).finally(() => {
           setLoading(false);
         });
       } else {
         setLoading(false);
       }
+    }).catch((error) => {
+      console.error('Error getting initial session:', error);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
