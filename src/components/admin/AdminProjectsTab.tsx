@@ -60,51 +60,58 @@ const AdminProjectsTab = () => {
   };
 
   const handleAdd = async () => {
-    if (!form.name || !form.description || !form.image) {
-      toast.error('Name, description, and image required');
+    if (!form.name || !form.description) {
+      toast.error('Name and description are required');
       return;
     }
     
     setUploading(true);
     
     try {
-      // Ensure bucket exists
-      const bucketExists = await ensureBucketExists();
-      if (!bucketExists) {
-        setUploading(false);
-        return;
+      let publicUrl = '';
+      let filename = '';
+
+      // Only upload image if one is selected
+      if (form.image) {
+        // Ensure bucket exists
+        const bucketExists = await ensureBucketExists();
+        if (!bucketExists) {
+          setUploading(false);
+          return;
+        }
+
+        const ext = (form.image as File).name.split('.').pop();
+        filename = `project_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        
+        console.log('Uploading project file:', filename);
+        
+        const { error: uploadErr, data: uploadData } = await supabase.storage
+          .from('gallery')
+          .upload(filename, form.image as File, { 
+            cacheControl: '3600',
+            upsert: false 
+          });
+
+        if (uploadErr) {
+          console.error('Upload error:', uploadErr);
+          throw new Error(`Upload failed: ${uploadErr.message}`);
+        }
+
+        console.log('Project upload successful:', uploadData);
+
+        const { data } = supabase.storage
+          .from('gallery').getPublicUrl(filename);
+        publicUrl = data.publicUrl;
+
+        console.log('Project public URL:', publicUrl);
       }
-
-      const ext = (form.image as File).name.split('.').pop();
-      const filename = `project_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      
-      console.log('Uploading project file:', filename);
-      
-      const { error: uploadErr, data: uploadData } = await supabase.storage
-        .from('gallery')
-        .upload(filename, form.image as File, { 
-          cacheControl: '3600',
-          upsert: false 
-        });
-
-      if (uploadErr) {
-        console.error('Upload error:', uploadErr);
-        throw new Error(`Upload failed: ${uploadErr.message}`);
-      }
-
-      console.log('Project upload successful:', uploadData);
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('gallery').getPublicUrl(filename);
-
-      console.log('Project public URL:', publicUrl);
 
       const { error: insertError } = await supabase.from('projects').insert({
         name: form.name,
         description: form.description,
         details: form.details,
-        image_url: publicUrl,
-        image_path: filename
+        image_url: publicUrl || null,
+        image_path: filename || null
       });
 
       if (insertError) {
@@ -176,9 +183,12 @@ const AdminProjectsTab = () => {
             disabled={uploading}
           />
         </div>
-        <Button onClick={handleAdd} disabled={uploading || !form.name || !form.description || !form.image}>
-          {uploading ? 'Uploading...' : 'Add Program'}
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button onClick={handleAdd} disabled={uploading || !form.name || !form.description}>
+            {uploading ? 'Uploading...' : 'Add Program'}
+          </Button>
+          <span className="text-sm text-gray-500">* Image is optional</span>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
           {projects.map(proj => (

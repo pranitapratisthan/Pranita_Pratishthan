@@ -23,9 +23,7 @@ const AdminYouTubeTab = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [title, setTitle] = useState('');
   const [videoId, setVideoId] = useState('');
-  const [desc, setDesc] = useState('');
   const [videoType, setVideoType] = useState('normal');
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => { fetchVideos(); }, []);
@@ -41,43 +39,33 @@ const AdminYouTubeTab = () => {
 
   const handleAdd = async () => {
     if (!title || !videoId) {
-      toast.error('Title and Video ID/URL required');
+      toast.error('Title and Video URL required');
       return;
     }
 
     // Extract clean video ID from URL or use as-is if already clean
     const cleanVideoId = extractYouTubeVideoId(videoId);
     if (!cleanVideoId) {
-      toast.error('Invalid YouTube video ID or URL. Please check the format.');
+      toast.error('Invalid YouTube video URL. Please check the format.');
       return;
     }
 
     setUploading(true);
     try {
-      let thumbUrl = '';
-      if (thumbnail) {
-        const ext = thumbnail.name.split('.').pop();
-        const filename = `youtube_thumb_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: uploadErr } = await supabase
-          .storage.from('youtube_thumbnails').upload(filename, thumbnail, { upsert: true });
-        if (uploadErr) throw uploadErr;
-        const { data: { publicUrl } } = supabase.storage
-          .from('youtube_thumbnails').getPublicUrl(filename);
-        thumbUrl = publicUrl;
-      }
+      // Auto-generate thumbnail URL from YouTube
+      const thumbUrl = `https://img.youtube.com/vi/${cleanVideoId}/maxresdefault.jpg`;
+      
       const { error } = await supabase.from('youtube_videos').insert({
         title,
-        video_id: cleanVideoId, // Use the clean video ID
-        description: desc,
+        video_id: cleanVideoId,
+        description: '',
         thumbnail_url: thumbUrl,
         is_news: videoType === 'news'
       });
       if (error) throw error;
       setTitle('');
       setVideoId('');
-      setDesc('');
       setVideoType('normal');
-      setThumbnail(null);
       toast.success('Video added successfully');
       fetchVideos();
     } catch (error) {
@@ -114,20 +102,18 @@ const AdminYouTubeTab = () => {
         <CardTitle>YouTube Video Management</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <Input placeholder="Video Title" value={title}
-            onChange={e => setTitle(e.target.value)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <Input 
-            placeholder="YouTube Video ID or URL" 
+            placeholder="Video Title" 
+            value={title}
+            onChange={e => setTitle(e.target.value)} 
+          />
+          <Input 
+            placeholder="YouTube Video URL (e.g., https://youtube.com/watch?v=...)" 
             value={videoId}
             onChange={e => setVideoId(e.target.value)}
-            title="Enter YouTube video ID, full URL, or youtu.be link"
+            title="Enter full YouTube URL or youtu.be link"
           />
-          <Input placeholder="Description" value={desc}
-            onChange={e => setDesc(e.target.value)} />
-          <Input type="file" accept="image/*"
-            onChange={e => setThumbnail(e.target.files?.[0] || null)}
-            />
         </div>
         
         <div className="mb-4">
@@ -144,7 +130,7 @@ const AdminYouTubeTab = () => {
           </RadioGroup>
         </div>
 
-        <Button onClick={handleAdd} disabled={uploading} className="mb-8">
+        <Button onClick={handleAdd} disabled={uploading || !title || !videoId} className="mb-8">
           {uploading ? 'Adding...' : 'Add Video'}
         </Button>
         

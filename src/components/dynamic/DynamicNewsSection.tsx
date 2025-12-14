@@ -98,14 +98,14 @@ const DynamicNewsSection = () => {
           {/* News articles */}
           <div className="flex-1">
             {news.length === 0 ? (
-              <div className="text-center text-gray-500">
+              <div className="text-center text-gray-500 py-8">
                 अद्याप कोणत्याही बातम्या उपलब्ध नाहीत.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {news.map((item) => (
                   <button
-                    className="text-left w-full focus:outline-none"
+                    className="text-left w-full focus:outline-none group"
                     key={item.id}
                     onClick={() => {
                       setSelected(item);
@@ -113,9 +113,9 @@ const DynamicNewsSection = () => {
                     }}
                     aria-label={`${item.title} article`}
                   >
-                    <div className="cultural-shadow hover:shadow-xl transition-shadow duration-300 rounded-lg bg-white">
+                    <div className="border-2 border-gray-200 hover:border-marathi-orange bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 group-focus:ring-2 group-focus:ring-marathi-orange group-focus:ring-offset-2">
                       <div className="p-6">
-                        <h3 className="font-bold text-xl text-gray-800 mb-2 line-clamp-2">
+                        <h3 className="font-bold text-xl text-gray-800 mb-2 line-clamp-2 group-hover:text-marathi-orange transition-colors">
                           {item.title}
                         </h3>
                         {item.summary && (
@@ -123,6 +123,14 @@ const DynamicNewsSection = () => {
                             {item.summary}
                           </p>
                         )}
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                          <span className="text-sm text-gray-500">
+                            {item.date ? new Date(item.date).toLocaleDateString('mr-IN') : ''}
+                          </span>
+                          <span className="text-sm font-medium text-marathi-orange group-hover:underline">
+                            अधिक वाचा →
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </button>
