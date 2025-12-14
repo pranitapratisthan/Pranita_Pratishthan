@@ -111,7 +111,7 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-12">
+        <div className="mt-4 mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">
             <Button 
               variant="outline" 
