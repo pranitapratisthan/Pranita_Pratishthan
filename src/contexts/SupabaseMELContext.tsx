@@ -127,21 +127,26 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchMELUsers = async () => {
     try {
+      // For admin users, we need to fetch all MEL users
+      // The RLS policy allows admins to view via is_admin function
       const { data, error } = await supabase
         .from('mel_users')
         .select('*')
-        .order('full_name');
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching MEL users:', error);
-        toast.error('Failed to load MEL users');
+        // Don't show error toast for permission issues - admin might not have access yet
+        if (!error.message.includes('permission')) {
+          toast.error('Failed to load MEL users');
+        }
         return;
       }
       
+      console.log('Fetched MEL users:', data?.length || 0);
       setMELUsers(data || []);
     } catch (error) {
       console.error('Error fetching MEL users:', error);
-      toast.error('Failed to load MEL users');
     }
   };
 
@@ -224,25 +229,39 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
         const fileExt = changes.banner_file.name.split('.').pop();
         const fileName = `popup_${Date.now()}.${fileExt}`;
         
+        // Use 'images' bucket which is confirmed to exist
         const { error: uploadError } = await supabase.storage
-          .from('gallery')
-          .upload(fileName, changes.banner_file);
+          .from('images')
+          .upload(fileName, changes.banner_file, {
+            cacheControl: '3600',
+            upsert: true
+          });
         
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Popup image upload error:', uploadError);
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
         
-        const { data: { publicUrl } } = supabase.storage
-          .from('gallery')
+        const { data } = supabase.storage
+          .from('images')
           .getPublicUrl(fileName);
         
-        bannerUrl = publicUrl;
+        bannerUrl = data.publicUrl;
         bannerPath = fileName;
       }
 
+      // Build clean payload without banner_file
+      const { banner_file, id, ...cleanChanges } = changes;
+      
       const payload: any = {
-        ...changes,
-        banner_image_url: bannerUrl,
+        ...cleanChanges,
+        updated_at: new Date().toISOString(),
       };
 
+      // Only update banner URL if we have a new one
+      if (bannerUrl !== undefined) {
+        payload.banner_image_url = bannerUrl;
+      }
       if (bannerPath) {
         payload.banner_image_path = bannerPath;
       }
@@ -254,18 +273,26 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
           .from('popup_events')
           .update(payload)
           .eq('id', popupId);
-        if (error) throw error;
+        if (error) {
+          console.error('Popup update error:', error);
+          throw new Error(`Database update failed: ${error.message}`);
+        }
       } else {
+        // Create new popup
+        payload.title = payload.title || 'New Event';
         const { error } = await supabase
           .from('popup_events')
           .insert([payload]);
-        if (error) throw error;
+        if (error) {
+          console.error('Popup insert error:', error);
+          throw new Error(`Database insert failed: ${error.message}`);
+        }
       }
-      toast.success('Popup updated!');
+      toast.success('Popup updated successfully!');
       await fetchPopup();
     } catch (error) {
       console.error('Error updating popup:', error);
-      toast.error('Failed to update popup');
+      toast.error(error instanceof Error ? error.message : 'Failed to update popup');
     }
   };
 
@@ -311,19 +338,28 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
     updates: Omit<PresidentSecretary, 'id' | 'updated_at'> & { id?: string; photo_file?: File | null }
   ) => {
     try {
-      let photoUrl: string | null = updates.photo_url || null;
+      // Determine photo URL - only update if new file is provided
+      let photoUrl: string | null | undefined;
 
       if (updates.photo_file) {
+        // New photo selected - upload it
         photoUrl = await uploadPresidentSecretaryPhoto(updates.photo_file);
+      } else {
+        // No new photo - keep existing URL (don't set to null)
+        photoUrl = updates.photo_url;
       }
 
-      const payload = {
+      const payload: any = {
         role: updates.role,
         name: updates.name,
         message: updates.message,
-        photo_url: photoUrl,
         updated_at: new Date().toISOString(),
       };
+
+      // Only include photo_url in payload if we have a value
+      if (photoUrl !== undefined) {
+        payload.photo_url = photoUrl;
+      }
 
       const recordId = updates.id;
 
@@ -336,7 +372,7 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       } else {
         const { error } = await supabase
           .from('president_secretary')
-          .insert([payload]);
+          .insert([{ ...payload, photo_url: photoUrl || null }]);
         if (error) throw error;
       }
 

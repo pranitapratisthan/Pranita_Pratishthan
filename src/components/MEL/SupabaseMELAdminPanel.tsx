@@ -34,10 +34,10 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
     name: '',
     photo_url: '',
     photo_path: null as string | null,
-    total_quantity: 0,
-    available_quantity: 0,
-    rental_duration: 7,
-    deposit_amount: 0,
+    total_quantity: '' as string | number,
+    available_quantity: '' as string | number,
+    rental_duration: '' as string | number,
+    deposit_amount: '' as string | number,
     updated_at: new Date().toISOString()
   });
 
@@ -55,15 +55,21 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
     }
 
     try {
-      await addEquipment(newEquipment);
+      await addEquipment({
+        ...newEquipment,
+        total_quantity: Number(newEquipment.total_quantity) || 0,
+        available_quantity: Number(newEquipment.available_quantity) || 0,
+        rental_duration: Number(newEquipment.rental_duration) || 7,
+        deposit_amount: Number(newEquipment.deposit_amount) || 0,
+      });
       setNewEquipment({
         name: '',
         photo_url: '',
         photo_path: null,
-        total_quantity: 0,
-        available_quantity: 0,
-        rental_duration: 7,
-        deposit_amount: 0,
+        total_quantity: '',
+        available_quantity: '',
+        rental_duration: '',
+        deposit_amount: '',
         updated_at: new Date().toISOString()
       });
     } catch (error) {
@@ -145,38 +151,38 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    placeholder="Equipment name"
+                    placeholder="Equipment name *"
                     value={newEquipment.name}
                     onChange={(e) => setNewEquipment({...newEquipment, name: e.target.value})}
                   />
                   <Input
-                    placeholder="Equipment photo URL"
+                    placeholder="Equipment photo URL (optional)"
                     value={newEquipment.photo_url}
                     onChange={(e) => setNewEquipment({...newEquipment, photo_url: e.target.value})}
                   />
                   <Input
                     type="number"
-                    placeholder="Total quantity"
-                    value={newEquipment.total_quantity}
-                    onChange={(e) => setNewEquipment({...newEquipment, total_quantity: parseInt(e.target.value) || 0})}
+                    placeholder="Total quantity (e.g., 10)"
+                    value={newEquipment.total_quantity === '' ? '' : newEquipment.total_quantity}
+                    onChange={(e) => setNewEquipment({...newEquipment, total_quantity: e.target.value === '' ? '' : parseInt(e.target.value) || 0})}
                   />
                   <Input
                     type="number"
-                    placeholder="Available quantity"
-                    value={newEquipment.available_quantity}
-                    onChange={(e) => setNewEquipment({...newEquipment, available_quantity: parseInt(e.target.value) || 0})}
+                    placeholder="Available quantity (e.g., 8)"
+                    value={newEquipment.available_quantity === '' ? '' : newEquipment.available_quantity}
+                    onChange={(e) => setNewEquipment({...newEquipment, available_quantity: e.target.value === '' ? '' : parseInt(e.target.value) || 0})}
                   />
                   <Input
                     type="number"
-                    placeholder="Rental duration (days)"
-                    value={newEquipment.rental_duration}
-                    onChange={(e) => setNewEquipment({...newEquipment, rental_duration: parseInt(e.target.value) || 7})}
+                    placeholder="Rental duration in days (e.g., 7)"
+                    value={newEquipment.rental_duration === '' ? '' : newEquipment.rental_duration}
+                    onChange={(e) => setNewEquipment({...newEquipment, rental_duration: e.target.value === '' ? '' : parseInt(e.target.value) || 7})}
                   />
                   <Input
                     type="number"
-                    placeholder="Deposit amount (₹)"
-                    value={newEquipment.deposit_amount}
-                    onChange={(e) => setNewEquipment({...newEquipment, deposit_amount: parseInt(e.target.value) || 0})}
+                    placeholder="Deposit amount ₹ (e.g., 500)"
+                    value={newEquipment.deposit_amount === '' ? '' : newEquipment.deposit_amount}
+                    onChange={(e) => setNewEquipment({...newEquipment, deposit_amount: e.target.value === '' ? '' : parseInt(e.target.value) || 0})}
                   />
                 </div>
                 <Button onClick={handleAddEquipment} className="mt-4">
