@@ -111,21 +111,21 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-12">
-          <div className="flex items-center gap-4 mb-8">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onBackToUser}
-            className="border-marathi-orange text-marathi-orange hover:bg-marathi-orange hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            मागे
-          </Button>
-        </div>
-          <h2 className="text-4xl font-bold text-marathi-orange mb-4">
-            MEL Settings
-          </h2>
+        <div className="mb-12">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onBackToUser}
+              className="border-marathi-orange text-marathi-orange hover:bg-marathi-orange hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              मागे
+            </Button>
+            <h2 className="text-4xl font-bold text-marathi-orange">
+              MEL Settings
+            </h2>
+          </div>
           <div className="w-24 h-1 saffron-gradient mx-auto mb-6"></div>
         </div>
 
