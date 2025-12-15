@@ -1,16 +1,14 @@
 
 import { MapPin, Phone, Mail, Facebook, Youtube, Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const scrollToSection = (sectionId: string) => {
-    if (sectionId === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      window.location.hash = sectionId;
-    }
+    // Navigate to home page with the section info
+    navigate('/', { state: { scrollTo: sectionId } });
   };
 
   const handlePageNavigation = (path: string) => {
