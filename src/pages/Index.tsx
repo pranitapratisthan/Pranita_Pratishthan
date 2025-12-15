@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import DynamicTimeline from '@/components/dynamic/DynamicTimeline';
@@ -17,6 +17,18 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle scroll to section from navigation state (e.g., from footer links)
+  useEffect(() => {
+    const state = location.state as { scrollTo?: string } | null;
+    if (state?.scrollTo) {
+      // Navigate to the section
+      setActiveSection(state.scrollTo);
+      // Clear the state to prevent re-navigation on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleNavigate = (section: string) => {
     if (section === 'admin') {
@@ -26,33 +38,39 @@ const Index = () => {
       }
     }
     setActiveSection(section);
+    // Scroll to top when changing sections
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const renderSection = () => {
     switch (activeSection) {
       case 'home':
         return (
-          <>
+          <div id="home">
             <HeroSection />
-            <DynamicTimeline />
-          </>
+            <div id="timeline">
+              <DynamicTimeline />
+            </div>
+          </div>
         );
       case 'about':
-        return <AboutSection />;
+        return <div id="about"><AboutSection /></div>;
       case 'gallery':
-        return <DynamicPhotoGallery />;
+        return <div id="gallery"><DynamicPhotoGallery /></div>;
       case 'news':
-        return <DynamicNewsSection />;
+        return <div id="news"><DynamicNewsSection /></div>;
       case 'youtube':
-        return <DynamicYouTubeSection />;
+        return <div id="youtube"><DynamicYouTubeSection /></div>;
       case 'admin':
         return <UnifiedAdminPanel />;
       default:
         return (
-          <>
+          <div id="home">
             <HeroSection />
-            <DynamicTimeline />
-          </>
+            <div id="timeline">
+              <DynamicTimeline />
+            </div>
+          </div>
         );
     }
   };

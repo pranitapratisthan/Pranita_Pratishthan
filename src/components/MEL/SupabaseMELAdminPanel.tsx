@@ -4,11 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSupabaseMEL } from '@/contexts/SupabaseMELContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EquipmentEditModal } from './EquipmentEditModal';
+import { UserEditModal } from './UserEditModal';
 
 interface SupabaseMELAdminPanelProps {
   onBackToUser: () => void;
@@ -25,6 +28,7 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
     updateEquipment,
     deleteEquipment,
     deleteMELUser,
+    updateRental,
     getOverdueRentals,
     refreshData,
     loading
@@ -47,6 +51,12 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
     full_name: '',
     email: ''
   });
+
+  // Modal states
+  const [deleteEquipmentDialog, setDeleteEquipmentDialog] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: '', name: '' });
+  const [deleteUserDialog, setDeleteUserDialog] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: '', name: '' });
+  const [editEquipment, setEditEquipment] = useState<any>(null);
+  const [editUser, setEditUser] = useState<any>(null);
 
   const handleAddEquipment = async () => {
     if (!newEquipment.name) {
@@ -102,6 +112,24 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
       });
       await refreshData();
     }
+  };
+
+  const handleDeleteEquipment = async () => {
+    if (deleteEquipmentDialog.id) {
+      await deleteEquipment(deleteEquipmentDialog.id);
+      setDeleteEquipmentDialog({ open: false, id: '', name: '' });
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (deleteUserDialog.id) {
+      await deleteMELUser(deleteUserDialog.id);
+      setDeleteUserDialog({ open: false, id: '', name: '' });
+    }
+  };
+
+  const handleMarkReturned = async (rentalId: string) => {
+    await updateRental(rentalId, { status: 'returned' });
   };
 
   const overdueRentals = getOverdueRentals();
@@ -207,21 +235,25 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
                         <div>
                           <h4 className="font-medium">{item.name}</h4>
                           <p className="text-sm text-gray-600">
-                            Available: {item.available_quantity}/{item.total_quantity} | 
+                            Available: <span className={item.available_quantity === 0 ? 'text-red-600 font-bold' : 'text-green-600'}>{item.available_quantity}</span>/{item.total_quantity} | 
                             Duration: {item.rental_duration} days | 
                             Deposit: ₹{item.deposit_amount}
                           </p>
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setEditEquipment(item)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
                           className="text-red-600"
-                          onClick={() => deleteEquipment(item.id)}
+                          onClick={() => setDeleteEquipmentDialog({ open: true, id: item.id, name: item.name })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -276,29 +308,42 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
                 <CardTitle>MEL Users ({melUsers.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {melUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{user.full_name}</h4>
-                        <p className="text-sm text-gray-600">
-                          Username: {user.username} | Email: {user.email}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Created: {new Date(user.created_at).toLocaleDateString()}
-                        </p>
+                {melUsers.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No MEL users found. Create one above.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {melUsers.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{user.full_name}</h4>
+                          <p className="text-sm text-gray-600">
+                            Username: {user.username} | Email: {user.email}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Created: {new Date(user.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setEditUser(user)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600"
+                            onClick={() => setDeleteUserDialog({ open: true, id: user.id, name: user.full_name })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-red-600"
-                        onClick={() => deleteMELUser(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -314,9 +359,22 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
                     <div key={rental.id} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-medium">{rental.equipment_name}</h4>
-                        <Badge variant={rental.status === 'returned' ? 'secondary' : 'default'}>
-                          {rental.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={rental.status === 'returned' ? 'secondary' : 'default'}>
+                            {rental.status}
+                          </Badge>
+                          {rental.status === 'rented' && (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleMarkReturned(rental.id)}
+                              className="text-green-600"
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Mark Returned
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
                         <p>Patient: {rental.patient_name}</p>
@@ -345,7 +403,18 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
                       <div key={rental.id} className="p-4 border rounded-lg border-red-200 bg-red-50">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium text-red-800">{rental.equipment_name}</h4>
-                          <Badge variant="destructive">Overdue</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="destructive">Overdue</Badge>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleMarkReturned(rental.id)}
+                              className="text-green-600 bg-white"
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Mark Returned
+                            </Button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-red-700">
                           <p>Patient: {rental.patient_name}</p>
@@ -362,6 +431,42 @@ const SupabaseMELAdminPanel = ({ onBackToUser }: SupabaseMELAdminPanelProps) => 
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        open={deleteEquipmentDialog.open}
+        onOpenChange={(open) => setDeleteEquipmentDialog({ ...deleteEquipmentDialog, open })}
+        title="Delete Equipment"
+        description={`Are you sure you want to delete "${deleteEquipmentDialog.name}"? This action cannot be undone.`}
+        onConfirm={handleDeleteEquipment}
+        confirmText="Delete"
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={deleteUserDialog.open}
+        onOpenChange={(open) => setDeleteUserDialog({ ...deleteUserDialog, open })}
+        title="Delete User"
+        description={`Are you sure you want to delete user "${deleteUserDialog.name}"? This action cannot be undone.`}
+        onConfirm={handleDeleteUser}
+        confirmText="Delete"
+        variant="destructive"
+      />
+
+      {/* Edit Modals */}
+      <EquipmentEditModal
+        open={!!editEquipment}
+        onOpenChange={(open) => !open && setEditEquipment(null)}
+        equipment={editEquipment}
+        onSave={updateEquipment}
+      />
+
+      <UserEditModal
+        open={!!editUser}
+        onOpenChange={(open) => !open && setEditUser(null)}
+        user={editUser}
+        onSaved={refreshData}
+      />
     </div>
   );
 };
