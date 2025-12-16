@@ -449,33 +449,46 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
 
   const addRental = async (rentalData: Omit<Rental, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Update equipment availability FIRST (decrease by 1) - fetch fresh from DB
+      if (rentalData.equipment_id) {
+        const { data: currentEquipment, error: fetchError } = await supabase
+          .from('equipment_inventory')
+          .select('available_quantity')
+          .eq('id', rentalData.equipment_id)
+          .single();
+        
+        if (fetchError) {
+          console.error('Error fetching equipment:', fetchError);
+          throw new Error('Failed to check equipment availability');
+        }
+        
+        if (!currentEquipment || currentEquipment.available_quantity <= 0) {
+          throw new Error('Equipment is not available');
+        }
+        
+        const { error: updateError } = await supabase
+          .from('equipment_inventory')
+          .update({ 
+            available_quantity: currentEquipment.available_quantity - 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', rentalData.equipment_id);
+        
+        if (updateError) {
+          console.error('Error updating equipment availability:', updateError);
+          throw new Error('Failed to update equipment availability');
+        }
+      }
+      
       // Insert rental record
       const { error } = await supabase.from('patient_history').insert([rentalData]);
       if (error) throw error;
-      
-      // Update equipment availability (decrease by 1)
-      if (rentalData.equipment_id) {
-        const equipmentItem = equipment.find(e => e.id === rentalData.equipment_id);
-        if (equipmentItem && equipmentItem.available_quantity > 0) {
-          const { error: updateError } = await supabase
-            .from('equipment_inventory')
-            .update({ 
-              available_quantity: equipmentItem.available_quantity - 1,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', rentalData.equipment_id);
-          
-          if (updateError) {
-            console.error('Error updating equipment availability:', updateError);
-          }
-        }
-      }
       
       toast.success('Rental added successfully');
       await Promise.all([fetchRentals(), fetchEquipment()]);
     } catch (error) {
       console.error('Error adding rental:', error);
-      toast.error('Failed to add rental');
+      toast.error(error instanceof Error ? error.message : 'Failed to add rental');
     }
   };
 
@@ -487,11 +500,16 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.from('patient_history').update(updates).eq('id', id);
       if (error) throw error;
       
-      // If status changed to 'returned', increase equipment availability
+      // If status changed to 'returned', increase equipment availability - fetch fresh from DB
       if (updates.status === 'returned' && originalRental?.status === 'rented' && originalRental.equipment_id) {
-        const equipmentItem = equipment.find(e => e.id === originalRental.equipment_id);
-        if (equipmentItem) {
-          const newAvailable = Math.min(equipmentItem.available_quantity + 1, equipmentItem.total_quantity);
+        const { data: currentEquipment, error: fetchError } = await supabase
+          .from('equipment_inventory')
+          .select('available_quantity, total_quantity')
+          .eq('id', originalRental.equipment_id)
+          .single();
+        
+        if (!fetchError && currentEquipment) {
+          const newAvailable = Math.min(currentEquipment.available_quantity + 1, currentEquipment.total_quantity);
           const { error: updateError } = await supabase
             .from('equipment_inventory')
             .update({ 

@@ -40,30 +40,8 @@ const AdminPhotoGalleryTab = () => {
     setPhotos(data || []);
   };
 
-  const ensureBucketExists = async () => {
-    try {
-      // Check if bucket exists
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      
-      if (listError) {
-        console.error('Error listing buckets:', listError);
-        return false;
-      }
-
-      const galleryBucket = buckets?.find(bucket => bucket.name === 'gallery');
-      
-      if (!galleryBucket) {
-        console.error('Gallery bucket does not exist');
-        toast.error('Storage bucket not found. Please contact administrator.');
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error checking bucket:', error);
-      return false;
-    }
-  };
+  // Removed bucket existence check - listBuckets requires admin privileges
+  // Upload will fail with clear error if bucket doesn't exist
 
   const handleAddPhoto = async () => {
     if (!title || !image) {
@@ -74,13 +52,6 @@ const AdminPhotoGalleryTab = () => {
     setUploading(true);
     
     try {
-      // Ensure bucket exists
-      const bucketExists = await ensureBucketExists();
-      if (!bucketExists) {
-        setUploading(false);
-        return;
-      }
-
       const ext = image.name.split('.').pop();
       const filename = `gallery_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       
