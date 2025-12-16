@@ -30,8 +30,13 @@ const RentalForm = () => {
       return;
     }
 
-    if (!selectedEquipment || selectedEquipment.available_quantity === 0) {
-      toast.error('Selected equipment is not available');
+    if (!selectedEquipment) {
+      toast.error('Please select equipment');
+      return;
+    }
+
+    if (selectedEquipment.available_quantity <= 0) {
+      toast.error('This equipment is currently unavailable. Please select another equipment.');
       return;
     }
 
@@ -57,9 +62,7 @@ const RentalForm = () => {
 
     try {
       await addRental(rental);
-      toast.success('Rental created successfully!');
-      
-      // Reset form
+      // Reset form only on success
       setFormData({
         patientName: '',
         mobileNumber: '',
@@ -68,7 +71,7 @@ const RentalForm = () => {
       });
     } catch (error) {
       console.error('Error creating rental:', error);
-      toast.error('Failed to create rental');
+      // Error already shown by addRental
     }
   };
 

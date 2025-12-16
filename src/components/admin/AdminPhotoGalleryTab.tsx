@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
@@ -19,8 +18,10 @@ interface Photo {
 
 const AdminPhotoGalleryTab = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [newCategory, setNewCategory] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -38,10 +39,13 @@ const AdminPhotoGalleryTab = () => {
       toast.error('Failed to load gallery');
     }
     setPhotos(data || []);
+    
+    // Extract unique categories
+    const categories = (data || [])
+      .map(p => p.category)
+      .filter((c): c is string => !!c && c.trim() !== '');
+    setExistingCategories([...new Set(categories)]);
   };
-
-  // Removed bucket existence check - listBuckets requires admin privileges
-  // Upload will fail with clear error if bucket doesn't exist
 
   const handleAddPhoto = async () => {
     if (!title || !image) {
@@ -77,11 +81,16 @@ const AdminPhotoGalleryTab = () => {
 
       console.log('Public URL:', publicUrl);
 
+      // Determine final category
+      const finalCategory = selectedCategory === '__new__' 
+        ? (newCategory.trim() || null)
+        : (selectedCategory || null);
+
       const { error: insertError } = await supabase
         .from('photo_gallery')
         .insert({
           title,
-          category: category || null,
+          category: finalCategory,
           image_url: publicUrl,
           image_path: filename
         });
@@ -92,7 +101,8 @@ const AdminPhotoGalleryTab = () => {
       }
 
       setTitle('');
-      setCategory('');
+      setSelectedCategory('');
+      setNewCategory('');
       setImage(null);
       
       // Reset file input
@@ -148,17 +158,33 @@ const AdminPhotoGalleryTab = () => {
         <CardTitle>Photo Gallery Management</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Input
             placeholder="Photo title"
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
-          <Input
-            placeholder="Category (optional)"
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-          />
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">No Category</SelectItem>
+              {existingCategories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+              <SelectItem value="__new__">+ Add New Category</SelectItem>
+            </SelectContent>
+          </Select>
+          {selectedCategory === '__new__' && (
+            <Input
+              placeholder="Enter new category name"
+              value={newCategory}
+              onChange={e => setNewCategory(e.target.value)}
+            />
+          )}
           <Input
             type="file"
             accept="image/*"
@@ -175,7 +201,7 @@ const AdminPhotoGalleryTab = () => {
             <div key={photo.id} className="rounded shadow p-3 flex flex-col items-center relative">
               <img src={photo.image_url} alt={photo.title} className="w-full h-48 object-cover mb-2 rounded" />
               <div className="font-bold">{photo.title}</div>
-              <div className="text-xs text-gray-600">{photo.category}</div>
+              <div className="text-xs text-gray-600">{photo.category || 'Uncategorized'}</div>
               <Button 
                 variant="outline" 
                 size="sm" 
