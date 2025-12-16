@@ -1,12 +1,43 @@
-
+import { useEffect, useState } from 'react';
 import { useSupabaseMEL } from '@/contexts/SupabaseMELContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+type CreatorInfo = {
+  [userId: string]: { name: string; username: string } | null;
+};
 
 const RentalHistory = () => {
   const { rentals, updateRental } = useSupabaseMEL();
+  const [creatorInfo, setCreatorInfo] = useState<CreatorInfo>({});
+
+  // Fetch creator info for all rentals
+  useEffect(() => {
+    const fetchCreatorInfo = async () => {
+      const userIds = [...new Set(rentals.map(r => r.created_by_user_id).filter(Boolean))];
+      if (userIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('mel_users')
+        .select('user_id, full_name, username')
+        .in('user_id', userIds);
+
+      if (!error && data) {
+        const infoMap: CreatorInfo = {};
+        data.forEach(user => {
+          if (user.user_id) {
+            infoMap[user.user_id] = { name: user.full_name, username: user.username };
+          }
+        });
+        setCreatorInfo(infoMap);
+      }
+    };
+
+    fetchCreatorInfo();
+  }, [rentals]);
 
   const handleMarkReturned = async (rentalId: string) => {
     try {
@@ -46,6 +77,15 @@ const RentalHistory = () => {
     } else {
       return `${diffDays} days remaining`;
     }
+  };
+
+  const getCreatorDisplay = (userId: string | null) => {
+    if (!userId) return 'Unknown';
+    const creator = creatorInfo[userId];
+    if (creator) {
+      return `${creator.name} (${creator.username})`;
+    }
+    return `User ID: ${userId.slice(0, 8)}...`;
   };
 
   return (
@@ -89,8 +129,13 @@ const RentalHistory = () => {
                   <div>
                     <p className="font-medium text-gray-700">Status:</p>
                     <p className={rental.status === 'returned' ? 'text-green-600' : new Date() > new Date(rental.return_date) ? 'text-red-600 font-medium' : 'text-blue-600'}>
-                      {getDaysRemaining(rental.return_date, rental.status)}
+                      {getDaysRemaining(rental.return_date, rental.status || 'rented')}
                     </p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-gray-700">Created By:</p>
+                    <p className="text-gray-600">{getCreatorDisplay(rental.created_by_user_id)}</p>
                   </div>
                 </div>
                 
