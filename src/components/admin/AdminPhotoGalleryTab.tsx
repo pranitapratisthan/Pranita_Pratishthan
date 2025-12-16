@@ -84,7 +84,7 @@ const AdminPhotoGalleryTab = () => {
       // Determine final category
       const finalCategory = selectedCategory === '__new__' 
         ? (newCategory.trim() || null)
-        : (selectedCategory || null);
+        : (selectedCategory && selectedCategory !== '__none__' ? selectedCategory : null);
 
       const { error: insertError } = await supabase
         .from('photo_gallery')
@@ -169,7 +169,7 @@ const AdminPhotoGalleryTab = () => {
               <SelectValue placeholder="Select category (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No Category</SelectItem>
+              <SelectItem value="__none__">No Category</SelectItem>
               {existingCategories.map((cat) => (
                 <SelectItem key={cat} value={cat}>
                   {cat}
