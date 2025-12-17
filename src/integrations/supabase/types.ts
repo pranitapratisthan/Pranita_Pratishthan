@@ -184,6 +184,8 @@ export type Database = {
       }
       patient_history: {
         Row: {
+          aadhaar_number: string | null
+          address: string | null
           created_at: string
           created_by_user_id: string | null
           equipment_id: string | null
@@ -197,6 +199,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aadhaar_number?: string | null
+          address?: string | null
           created_at?: string
           created_by_user_id?: string | null
           equipment_id?: string | null
@@ -210,6 +214,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aadhaar_number?: string | null
+          address?: string | null
           created_at?: string
           created_by_user_id?: string | null
           equipment_id?: string | null

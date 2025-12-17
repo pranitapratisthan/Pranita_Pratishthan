@@ -115,6 +115,20 @@ const RentalHistory = () => {
                     <p className="font-medium text-gray-700">Mobile:</p>
                     <p>{rental.mobile_number}</p>
                   </div>
+
+                  {rental.aadhaar_number && (
+                    <div>
+                      <p className="font-medium text-gray-700">Aadhaar:</p>
+                      <p>{rental.aadhaar_number}</p>
+                    </div>
+                  )}
+
+                  {rental.address && (
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <p className="font-medium text-gray-700">Address:</p>
+                      <p className="whitespace-pre-wrap">{rental.address}</p>
+                    </div>
+                  )}
                   
                   <div>
                     <p className="font-medium text-gray-700">Pickup Date:</p>

@@ -33,6 +33,8 @@ type Rental = {
   equipment_name: string;
   patient_name: string;
   mobile_number: string;
+  aadhaar_number: string | null;
+  address: string | null;
   pickup_date: string;
   return_date: string;
   status: string;
