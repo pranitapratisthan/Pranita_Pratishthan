@@ -1,9 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useAppContext } from '@/contexts/AppContext';
 
 interface Photo {
   id: string;
@@ -11,13 +10,11 @@ interface Photo {
   category?: string | null;
   image_url: string;
   created_at: string;
-  project_id?: string | null;
 }
 
 const DynamicPhotoGallery = () => {
-  const { programs: projects, loading: contextLoading } = useAppContext();
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -29,7 +26,7 @@ const DynamicPhotoGallery = () => {
       try {
         const fetchPromise = supabase
           .from('photo_gallery')
-          .select('*')
+          .select('id, title, category, image_url, created_at')
           .order('created_at', { ascending: false });
         
         const timeoutPromise = new Promise((_, reject) =>
@@ -49,12 +46,32 @@ const DynamicPhotoGallery = () => {
     fetchPhotos();
   }, []);
 
-  // Filter photos by selected project
-  const filteredPhotos = selectedProjectId
-    ? photos.filter((p) => p.project_id === selectedProjectId)
-    : photos;
+  // Extract unique categories from gallery photos
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    photos.forEach(photo => {
+      if (photo.category && photo.category.trim()) {
+        uniqueCategories.add(photo.category);
+      }
+    });
+    return Array.from(uniqueCategories).sort();
+  }, [photos]);
 
-  if (loading || contextLoading) {
+  // Filter photos by selected category
+  const filteredPhotos = useMemo(() => {
+    if (selectedCategory === null) return photos;
+    if (selectedCategory === '__uncategorized__') {
+      return photos.filter(p => !p.category || !p.category.trim());
+    }
+    return photos.filter(p => p.category === selectedCategory);
+  }, [photos, selectedCategory]);
+
+  // Check if there are uncategorized photos
+  const hasUncategorized = useMemo(() => {
+    return photos.some(p => !p.category || !p.category.trim());
+  }, [photos]);
+
+  if (loading) {
     return (
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,27 +112,39 @@ const DynamicPhotoGallery = () => {
           </p>
         </div>
 
-        {/* Project Category Filter */}
+        {/* Category Filter - Based on gallery categories only */}
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           <button
-            className={`px-6 py-2 rounded-full font-medium transition-all ${selectedProjectId === null ? 'bg-marathi-orange text-white cultural-shadow' : 'bg-gray-100 text-gray-700 hover:bg-marathi-orange/10'}`}
-            onClick={() => setSelectedProjectId(null)}
+            className={`px-6 py-2 rounded-full font-medium transition-all ${selectedCategory === null ? 'bg-marathi-orange text-white cultural-shadow' : 'bg-gray-100 text-gray-700 hover:bg-marathi-orange/10'}`}
+            onClick={() => setSelectedCategory(null)}
           >
             सर्व
           </button>
-          {projects.map((project) => (
+          {categories.map((category) => (
             <button
-              key={project.id}
+              key={category}
               className={`px-6 py-2 rounded-full font-medium transition-all ${
-                selectedProjectId === project.id
+                selectedCategory === category
                   ? 'bg-marathi-orange text-white cultural-shadow'
                   : 'bg-gray-100 text-gray-700 hover:bg-marathi-orange/10'
               }`}
-              onClick={() => setSelectedProjectId(project.id)}
+              onClick={() => setSelectedCategory(category)}
             >
-              {project.name}
+              {category}
             </button>
           ))}
+          {hasUncategorized && (
+            <button
+              className={`px-6 py-2 rounded-full font-medium transition-all ${
+                selectedCategory === '__uncategorized__'
+                  ? 'bg-marathi-orange text-white cultural-shadow'
+                  : 'bg-gray-100 text-gray-700 hover:bg-marathi-orange/10'
+              }`}
+              onClick={() => setSelectedCategory('__uncategorized__')}
+            >
+              इतर
+            </button>
+          )}
         </div>
 
         {/* Photo Grid */}
@@ -152,13 +181,9 @@ const DynamicPhotoGallery = () => {
                     </div>
                     <div className="p-4">
                       <h3 className="font-bold text-lg text-gray-800 mb-2">{photo.title}</h3>
-                       <p className="text-sm text-gray-600 italic">
-                         {
-                           photo.project_id
-                             ? (projects.find(proj => proj.id === photo.project_id)?.name || '...')
-                             : (photo.category || '')
-                         }
-                       </p>
+                      <p className="text-sm text-gray-600 italic">
+                        {photo.category || 'इतर'}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -173,10 +198,7 @@ const DynamicPhotoGallery = () => {
                     />
                     <div className="p-6 text-center">
                       <h3 className="font-bold text-2xl text-marathi-orange mb-2">{selectedPhoto.title}</h3>
-                       <p className="text-md text-gray-700">{selectedPhoto.project_id
-                         ? (projects.find(proj => proj.id === selectedPhoto.project_id)?.name || '...')
-                         : (selectedPhoto.category || '')
-                       }</p>
+                      <p className="text-md text-gray-700">{selectedPhoto.category || 'इतर'}</p>
                     </div>
                   </div>
                 )}
@@ -190,4 +212,3 @@ const DynamicPhotoGallery = () => {
 };
 
 export default DynamicPhotoGallery;
-

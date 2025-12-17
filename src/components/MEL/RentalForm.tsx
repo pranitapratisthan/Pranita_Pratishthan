@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useSupabaseMEL } from '@/contexts/SupabaseMELContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { validateRental } from '@/lib/validation';
 
 const RentalForm = () => {
   const { equipment, addRental } = useSupabaseMEL();
@@ -14,6 +14,8 @@ const RentalForm = () => {
   const [formData, setFormData] = useState({
     patientName: '',
     mobileNumber: '',
+    aadhaarNumber: '',
+    address: '',
     equipmentId: '',
     pickupDate: new Date().toISOString().split('T')[0]
   });
@@ -23,10 +25,14 @@ const RentalForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form data using zod schema
-    const validation = validateRental(formData);
-    if (!validation.success) {
-      toast.error((validation as { success: false; error: string }).error);
+    // Basic validation
+    if (!formData.patientName.trim()) {
+      toast.error('Please enter patient name');
+      return;
+    }
+
+    if (!formData.mobileNumber || formData.mobileNumber.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
 
@@ -52,6 +58,8 @@ const RentalForm = () => {
     const rental = {
       patient_name: formData.patientName.trim(),
       mobile_number: formData.mobileNumber,
+      aadhaar_number: formData.aadhaarNumber.trim() || null,
+      address: formData.address.trim() || null,
       equipment_id: formData.equipmentId,
       equipment_name: selectedEquipment.name,
       pickup_date: formData.pickupDate,
@@ -66,6 +74,8 @@ const RentalForm = () => {
       setFormData({
         patientName: '',
         mobileNumber: '',
+        aadhaarNumber: '',
+        address: '',
         equipmentId: '',
         pickupDate: new Date().toISOString().split('T')[0]
       });
@@ -108,6 +118,31 @@ const RentalForm = () => {
               placeholder="Enter 10-digit mobile number"
               maxLength={10}
               pattern="[0-9]{10}"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Aadhaar Card Number (Optional)</label>
+            <Input
+              value={formData.aadhaarNumber}
+              onChange={(e) => {
+                // Only allow digits, max 12
+                const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+                setFormData({...formData, aadhaarNumber: value});
+              }}
+              placeholder="Enter 12-digit Aadhaar number"
+              maxLength={12}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Full Address (Optional)</label>
+            <Textarea
+              value={formData.address}
+              onChange={(e) => setFormData({...formData, address: e.target.value})}
+              placeholder="Enter full address"
+              rows={3}
+              maxLength={500}
             />
           </div>
 
