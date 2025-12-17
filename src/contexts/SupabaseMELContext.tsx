@@ -450,7 +450,7 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addRental = async (rentalData: Omit<Rental, 'id' | 'created_at' | 'updated_at'>) => {
-    // Update equipment availability FIRST (decrease by 1) - fetch fresh from DB
+    // Check equipment availability before attempting insert
     if (rentalData.equipment_id) {
       const { data: currentEquipment, error: fetchError } = await supabase
         .from('equipment_inventory')
@@ -468,23 +468,9 @@ export const SupabaseMELProvider = ({ children }: { children: ReactNode }) => {
         toast.error('This equipment is currently unavailable.');
         throw new Error('Equipment is not available');
       }
-      
-      const { error: updateError } = await supabase
-        .from('equipment_inventory')
-        .update({ 
-          available_quantity: currentEquipment.available_quantity - 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', rentalData.equipment_id);
-      
-      if (updateError) {
-        console.error('Error updating equipment availability:', updateError);
-        toast.error('Failed to update equipment availability');
-        throw new Error('Failed to update equipment availability');
-      }
     }
     
-    // Insert rental record
+    // Insert rental record - the database trigger will automatically update equipment availability
     const { error } = await supabase.from('patient_history').insert([rentalData]);
     if (error) {
       console.error('Error inserting rental:', error);
