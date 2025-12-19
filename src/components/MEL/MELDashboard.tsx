@@ -54,14 +54,37 @@ const MELDashboard = ({ onRentEquipment, onViewHistory }: MELDashboardProps) => 
   const totalRentals = rentals.length;
   const overdueRentals = getOverdueRentals();
 
-  const downloadRentalHistory = () => {
+  const downloadRentalHistory = async () => {
+    // Fetch MEL users for creator names
+    const { data: melUsersData } = await supabase
+      .from('mel_users')
+      .select('user_id, full_name, username');
+    
+    const userMap: { [key: string]: string } = {};
+    melUsersData?.forEach(u => {
+      if (u.user_id) {
+        userMap[u.user_id] = `${u.full_name} (${u.username})`;
+      }
+    });
+
+    // Create equipment map for deposit amounts
+    const equipmentMap: { [key: string]: number } = {};
+    equipment.forEach(eq => {
+      equipmentMap[eq.id] = eq.deposit_amount;
+    });
+
     const rentalData = rentals.map(rental => ({
-      Equipment: rental.equipment_name,
-      Patient: rental.patient_name,
-      Mobile: rental.mobile_number,
+      'Patient Name': rental.patient_name,
+      'Address': rental.address || '',
+      'Mobile Number': rental.mobile_number,
+      'Aadhaar Number': rental.aadhaar_number || '',
+      'Equipment Name': rental.equipment_name,
+      'Deposit Amount (₹)': rental.equipment_id ? equipmentMap[rental.equipment_id] || '' : '',
       'Pickup Date': new Date(rental.pickup_date).toLocaleDateString(),
       'Return Date': new Date(rental.return_date).toLocaleDateString(),
-      Status: rental.status
+      'Status': rental.status || 'rented',
+      'Created By': rental.created_by_user_id ? userMap[rental.created_by_user_id] || rental.created_by_user_id : 'Unknown',
+      'Created At': new Date(rental.created_at).toLocaleDateString()
     }));
     downloadCSV(rentalData, 'MEL_Rental_History');
   };
