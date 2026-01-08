@@ -15,7 +15,7 @@ const HeroSection = () => {
   const { popup, fetchPopup } = useSupabaseMEL();
   const [showPopup, setShowPopup] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
+  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
 
