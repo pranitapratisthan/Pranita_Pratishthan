@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSupabaseMEL } from '@/contexts/SupabaseMELContext';
 import useEmblaCarousel from 'embla-carousel-react';
-import AutoPlay from 'embla-carousel-autoplay';
 
 const heroImages = [
   '/hero.png',
@@ -16,11 +15,9 @@ const HeroSection = () => {
   const { popup, fetchPopup } = useSupabaseMEL();
   const [showPopup, setShowPopup] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true },
-    [AutoPlay({ delay: 3000, stopOnInteraction: false })]
-  );
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -37,6 +34,25 @@ const HeroSection = () => {
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  // Manual autoplay implementation
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    const startAutoplay = () => {
+      autoplayRef.current = setInterval(() => {
+        emblaApi.scrollNext();
+      }, 3000);
+    };
+
+    startAutoplay();
+
+    return () => {
+      if (autoplayRef.current) {
+        clearInterval(autoplayRef.current);
+      }
+    };
   }, [emblaApi]);
 
   useEffect(() => {
