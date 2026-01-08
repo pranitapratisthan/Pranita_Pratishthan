@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSupabaseMEL } from '@/contexts/SupabaseMELContext';
 import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
+import AutoPlay from 'embla-carousel-autoplay';
 
 const heroImages = [
   '/hero.png',
@@ -19,7 +19,7 @@ const HeroSection = () => {
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true },
-    [Autoplay({ delay: 3000, stopOnInteraction: false })]
+    [AutoPlay({ delay: 3000, stopOnInteraction: false })]
   );
 
   const scrollPrev = useCallback(() => {
