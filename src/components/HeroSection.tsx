@@ -6,9 +6,9 @@ import useEmblaCarousel from 'embla-carousel-react';
 
 const heroImages = [
   '/hero.png',
-  '/hero.png', // Replace with actual different images
-  '/hero.png', // Replace with actual different images
-  '/hero.png', // Replace with actual different images
+  '/hero2.png', // Replace with actual different images
+  '/hero3.png', // Replace with actual different images
+  '/hero4.png', // Replace with actual different images
 ];
 
 const HeroSection = () => {
@@ -43,7 +43,7 @@ const HeroSection = () => {
     const startAutoplay = () => {
       autoplayRef.current = setInterval(() => {
         emblaApi.scrollNext();
-      }, 3000);
+      }, 5000);
     };
 
     startAutoplay();
