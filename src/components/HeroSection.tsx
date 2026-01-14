@@ -6,9 +6,9 @@ import useEmblaCarousel from 'embla-carousel-react';
 
 const heroImages = [
   '/hero.png',
-  '/hero2.png', // Replace with actual different images
+  '/hero2.jpg', // Replace with actual different images
   '/hero3.png', // Replace with actual different images
-  '/hero4.png', // Replace with actual different images
+  '/hero4.jpg', // Replace with actual different images
 ];
 
 const HeroSection = () => {
