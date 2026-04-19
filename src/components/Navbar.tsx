@@ -32,14 +32,10 @@ const Navbar = ({ activeSection, onNavigate }: NavbarProps) => {
     navigate(`/program/${programId}`);
   };
 
-  const handleMELClick = () => {
-    navigate('/mel');
-  };
-
   return (
     <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex items-center h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 cursor-pointer flex items-center gap-3" onClick={() => onNavigate('home')}>
               <img
@@ -59,7 +55,7 @@ const Navbar = ({ activeSection, onNavigate }: NavbarProps) => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-2">
+          <div className="hidden lg:flex items-center gap-2 ml-auto">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -98,13 +94,6 @@ const Navbar = ({ activeSection, onNavigate }: NavbarProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button 
-              onClick={handleMELClick}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
-            >
-              MEL
-            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -155,19 +144,6 @@ const Navbar = ({ activeSection, onNavigate }: NavbarProps) => {
                     <span className="text-cultural">{program.name}</span>
                   </button>
                 ))}
-              </div>
-
-              <div className="flex gap-3 px-4 pt-3 border-t">
-                <Button 
-                  onClick={() => {
-                    handleMELClick();
-                    setIsOpen(false);
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                  size="sm"
-                >
-                  MEL
-                </Button>
               </div>
             </div>
           </div>
