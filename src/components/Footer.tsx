@@ -1,5 +1,5 @@
 
-import { MapPin, Phone, Mail, Facebook, Youtube, Heart } from 'lucide-react';
+import { MapPin, Phone, Mail, Facebook, Youtube,Instagram, Heart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
@@ -44,6 +44,9 @@ const Footer = () => {
               </a>
               <a href="https://youtube.com/@pranitapratishthan123?si=lCg-3n8B87s6IC5Y" className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors">
                 <Youtube className="h-6 w-6" />
+              </a>
+              <a href="https://www.instagram.com/pranita_pratishthan_bhusawal" className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-500 transition-colors">
+                <Instagram className="h-6 w-6" />
               </a>
             </div>
           </div>
