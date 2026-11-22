@@ -39,7 +39,7 @@ const Footer = () => {
             </p>
             
             <div className="flex space-x-4">
-              <a href="#" className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors">
+              <a href="https://www.facebook.com/profile.php?id=61586121980239" className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors">
                 <Facebook className="h-6 w-6" />
               </a>
               <a href="https://youtube.com/@pranitapratishthan123?si=lCg-3n8B87s6IC5Y" className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors">
